@@ -5,12 +5,13 @@ print("\n")
 
 def game():
     points = 0
-    shufword = nineLettersBoard()
+    nineword = word()
+    shufword = shuffle(nineword)
     #print(shufword)
     print(printBoard(box(shufword.copy())))
     print("If you need to see the board again, please type \"reprint board\" and press enter. \n"
-          "If you wish to end the game, please type \"end game\" and press enter. \n "
-          "The game will end automatically if you make 5 mistakes. Please take care. \n"
+          "If you wish to end the game, please type \"end game\" and press enter. \n"
+          "The game will end automatically if you make 5 mistakes. Please take care. \n "
           "Please have fun.\n "
           "It is mandatory.")
     print("Please type a word using the letters in the grid: \n")
@@ -30,7 +31,11 @@ def game():
             attempted_words.append(attempt)
         else:
             count -= 1
-    print("Your score: ", points, "\n", "Your words: ", attempted_words)
+    print("Your score: ", points, "\n", "Your words: ", attempted_words, "\n")
+    if max(attempted_words) == 9:
+        print("Congratulations on deciphering the longest possible word.")
+    else:
+        print("The longest possible word: ", nineword)
     x = input("Would you like to play again? Please type \"yes\" or \"no\" and press enter.\n")
     if x.lower() == 'yes' or 'y' or 'yess' or "ye":
         game()
@@ -89,11 +94,17 @@ def countlines():
         count += 1
     return count
 
-def nineLettersBoard():
-    x = open('list.txt', "r")
+def word():
+    x = open('list.txt', 'r')
     y = random_line(x)
     x.close()
-    word = split(y)[:-1]
+    return y
+
+def shuffle(word):
+    #x = open('list.txt', "r")
+    #y = random_line(x)
+    #x.close()
+    word = split(word)[:-1]
     #print(y)
     shufword = random.sample(word, len(word))
     return shufword
