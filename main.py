@@ -38,12 +38,7 @@ def game():
             print("The longest possible words: ", nineword, find_anagram(nineword))
     except ValueError:
         pass
-    x = input("Would you like to play again? Please type \"yes\" or \"no\" and press enter.\n")
-    if x == 'yes' or 'y' or 'yess' or "ye":
-        game()
-    elif x == "no" or "n":
-        print("Thank you for playing. Goodbye.")
-        exit()
+
 
 
 def box(a):
@@ -164,6 +159,15 @@ def find_anagram(word):
     x.close()
     return anagrams
 
+play = True
 
-game()
+while play:
+    game()
+
+    x = str(input("Would you like to play again? Please type \"yes\" or \"no\" and press enter.\n"))
+    if x == 'yes':
+        game()
+    elif x == "no":
+        print("Thank you for playing. Goodbye.")
+        play = False
 
