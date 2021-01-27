@@ -9,7 +9,9 @@ def game():
     #print(shufword)
     print(printBoard(box(shufword.copy())))
     print("If you need to see the board again, please type \"reprint board\" and press enter. \n"
-          "If you wish to end the game, please type \"end game\" and press enter. \n Please have fun.\n "
+          "If you wish to end the game, please type \"end game\" and press enter. \n "
+          "The game will end automatically if you make 5 mistakes. Please take care. \n"
+          "Please have fun.\n "
           "It is mandatory.")
     print("Please type a word using the letters in the grid: \n")
     count = 5
@@ -30,7 +32,7 @@ def game():
             count -= 1
     print("Your score: ", points, "\n", "Your words: ", attempted_words)
     x = input("Would you like to play again? Please type \"yes\" or \"no\" and press enter.\n")
-    if x.lower() == 'yes' or 'y' or 'yess':
+    if x.lower() == 'yes' or 'y' or 'yess' or "ye":
         game()
     else:
         print("Thank you for playing. Goodbye.")
