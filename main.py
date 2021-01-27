@@ -1,5 +1,4 @@
 import random
-#import time
 
 print("\n")
 
@@ -32,15 +31,19 @@ def game():
         else:
             count -= 1
     print("Your score: ", points, "\n", "Your words: ", attempted_words, "\n")
-    if max(attempted_words) == 9:
-        print("Congratulations on deciphering the longest possible word.")
-    else:
-        print("The longest possible word: ", nineword)
+    try :
+        if max(attempted_words) == 9:
+            print("Congratulations on deciphering the longest possible word.")
+        else:
+            print("The longest possible words: ", nineword, find_anagram(nineword))
+    except ValueError:
+        pass
     x = input("Would you like to play again? Please type \"yes\" or \"no\" and press enter.\n")
-    if x.lower() == 'yes' or 'y' or 'yess' or "ye":
+    if x == 'yes' or 'y' or 'yess' or "ye":
         game()
-    else:
+    elif x == "no" or "n":
         print("Thank you for playing. Goodbye.")
+        exit()
 
 
 def box(a):
@@ -148,6 +151,18 @@ def check2(attempt):
             return True
     print("That word either does not exist in my database, or you made it up. Please try again.")
     return False
+
+def find_anagram(word):
+    anagrams = ""
+    x = open('list.txt','r')
+    y = sorted(word)
+    for line in x:
+        i = line.strip()
+        if sorted(i) == y:
+            anagrams += i
+            anagrams += " "
+    x.close()
+    return anagrams
 
 
 game()
