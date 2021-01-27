@@ -7,11 +7,23 @@ def game():
     points = 0
     shufword = nineLettersBoard()
     print(shufword)
-    print(printBoard(box(shufword)))
+    print(printBoard(box(shufword.copy())))
     print("Please type a word using the letters in the grid: \n")
-    attempt = guess()
-    attempt = split(attempt)
-    print(attempt)
+    count = 5
+    attempted_words = []
+    while count > 0:
+        attempt = guess()
+        if attempt == "reprint the board!":
+            print(printBoard(box(shufword.copy())))
+        elif attempt in attempted_words:
+            print("You have already guessed that word. Please try again.")
+        elif check1(shufword.copy(), attempt) and check2(attempt):
+            print("Correct!")
+            points += len(attempt)
+            attempted_words.append(attempt)
+        else:
+            count += 1
+    print("Your score: ", points)
 
 
 def box(a):
@@ -77,7 +89,43 @@ def nineLettersBoard():
 
 def guess():
     attempt = str(input())
-    return attempt
+    return attempt.lower()
+
+def check1(shufword, attempt):
+    x = attempt
+    y = split(x)
+    #print(y, type(y))
+    count = 0
+    while count != 9:
+        for i in y:
+            for j in shufword:
+                try:
+                    if i == j:
+                        y.remove(i)
+                        shufword.remove(j)
+                except ValueError:
+                    print("VE")
+                    continue
+        count += 1
+    if len(y) != 0:
+        print("Please use only the characters in the grid.")
+        return False
+    else:
+        return True
+
+
+def check2(attempt):
+    x = open('words.txt', 'r')
+    #print(attempt)
+    for line in x:
+        word = line.strip()
+        #print(word)
+        if word == attempt:
+            x.close()
+            return True
+        else:
+            continue
+    return False
 
 
 game()
