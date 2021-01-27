@@ -29,6 +29,11 @@ def game():
         else:
             count -= 1
     print("Your score: ", points, "\n", "Your words: ", attempted_words)
+    x = input("Would you like to play again? Please type \"yes\" or \"no\" and press enter.\n")
+    if x.lower() == 'yes' or 'y' or 'yess':
+        game()
+    else:
+        print("Thank you for playing. Goodbye.")
 
 
 def box(a):
@@ -128,6 +133,7 @@ def check2(attempt):
         if word == attempt:
             x.close()
             return True
+    print("That word either does not exist in my database, or you made it up. Please try again.")
     return False
 
 
