@@ -13,7 +13,7 @@ def game():
     attempted_words = []
     while count > 0:
         attempt = guess()
-        if attempt == "reprint the board!":
+        if attempt == "reprint board":
             print(printBoard(box(shufword.copy())))
         elif attempt == "end game":
             break
@@ -24,7 +24,7 @@ def game():
             points += len(attempt)
             attempted_words.append(attempt)
         else:
-            count += 1
+            count -= 1
     print("Your score: ", points)
 
 
@@ -125,8 +125,6 @@ def check2(attempt):
         if word == attempt:
             x.close()
             return True
-        else:
-            continue
     return False
 
 
