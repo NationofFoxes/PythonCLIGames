@@ -6,10 +6,10 @@ print("\n")
 def game():
     points = 0
     shufword = nineLettersBoard()
-    print(shufword)
+    #print(shufword)
     print(printBoard(box(shufword.copy())))
-    print("If you need to see the board again, please type \"reprint board\" and press enter. "
-          "If you wish to end the game, please type \"end game\" and press enter. Please have fun."
+    print("If you need to see the board again, please type \"reprint board\" and press enter. \n"
+          "If you wish to end the game, please type \"end game\" and press enter. \n Please have fun.\n "
           "It is mandatory.")
     print("Please type a word using the letters in the grid: \n")
     count = 5
@@ -28,7 +28,7 @@ def game():
             attempted_words.append(attempt)
         else:
             count -= 1
-    print("Your score: ", points)
+    print("Your score: ", points, "\n", "Your words: ", attempted_words)
 
 
 def box(a):
@@ -87,7 +87,7 @@ def nineLettersBoard():
     y = random_line(x)
     x.close()
     word = split(y)[:-1]
-    print(y)
+    #print(y)
     shufword = random.sample(word, len(word))
     return shufword
 
@@ -109,7 +109,7 @@ def check1(shufword, attempt):
                         y.remove(i)
                         shufword.remove(j)
                 except ValueError:
-                    print("VE")
+                    #print("VE")
                     continue
         count += 1
     if len(y) != 0:
