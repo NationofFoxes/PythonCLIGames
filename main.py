@@ -15,6 +15,8 @@ def game():
         attempt = guess()
         if attempt == "reprint the board!":
             print(printBoard(box(shufword.copy())))
+        elif attempt == "end game":
+            break
         elif attempt in attempted_words:
             print("You have already guessed that word. Please try again.")
         elif check1(shufword.copy(), attempt) and check2(attempt):
