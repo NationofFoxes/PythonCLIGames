@@ -5,6 +5,7 @@ print("\n")
 def game():
     points = 0
     nineword = word()
+    print(nineword)
     shufword = shuffle(nineword)
     print("Possible solutions: ", possible_solution(shufword.copy()))
     #print(shufword)
@@ -35,8 +36,8 @@ def game():
     print("Your score: ", points, "\n", "Your words: ", attempted_words, "\n")
 
     try :
-        if max(attempted_words) == 9:
-            print("Congratulations on deciphering the longest possible word.")
+        if len(max(attempted_words)) >= 9:
+            print("Congratulations on deciphering the longest possible word. It was: ", nineword)
         else:
             print("The longest possible words: ", nineword, find_anagram(nineword))
     except ValueError:
@@ -160,9 +161,9 @@ def check3(shufword, list_item):
     x = list_item.strip()
     y = split(x)
     count = 0
+    while count != 9:
+        for i in y:
 
-    for i in y:
-        while count != 9:
             for j in shufword:
                 try:
                     if i == j:
