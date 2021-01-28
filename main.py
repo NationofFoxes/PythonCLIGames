@@ -6,6 +6,7 @@ def game():
     points = 0
     nineword = word()
     shufword = shuffle(nineword)
+    print("Possible solutions: ", possible_solution(shufword.copy()))
     #print(shufword)
     print(printBoard(box(shufword.copy())))
     print("If you need to see the board again, please type \"reprint board\" and press enter. \n"
@@ -24,6 +25,7 @@ def game():
             break
         elif attempt in attempted_words:
             print("You have already guessed that word. Please try again.")
+            count -= 1
         elif check1(shufword.copy(), attempt) and check2(attempt):
             print("Correct!")
             points += len(attempt)
@@ -31,6 +33,7 @@ def game():
         else:
             count -= 1
     print("Your score: ", points, "\n", "Your words: ", attempted_words, "\n")
+
     try :
         if max(attempted_words) == 9:
             print("Congratulations on deciphering the longest possible word.")
@@ -159,6 +162,36 @@ def find_anagram(word):
     x.close()
     return anagrams
 
+def check3(shufword, list_item):
+    x = list_item
+    y = split(x)
+    count = 0
+    while count != 9:
+        for i in y:
+            for j in shufword:
+                try:
+                    if i == j:
+                        y.remove(i)
+                        shufword.remove(j)
+                except ValueError:
+                    continue
+        count += 1
+    if len(y) != 0:
+        return False
+    else:
+        return True
+
+
+def possible_solution(shufword):
+    poss = []
+    t = open('list.txt','r')
+    for line in t:
+        if check3(shufword, line):
+            poss.append(line)
+    print(poss)
+    return len(poss)
+
+
 play = True
 
 while play:
@@ -166,7 +199,7 @@ while play:
 
     x = str(input("Would you like to play again? Please type \"yes\" or \"no\" and press enter.\n"))
     if x == 'yes':
-        game()
+        continue
     elif x == "no":
         print("Thank you for playing. Goodbye.")
         play = False
