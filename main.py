@@ -102,11 +102,7 @@ def word():
     return y
 
 def shuffle(word):
-    #x = open('list.txt', "r")
-    #y = random_line(x)
-    #x.close()
     word = split(word)[:-1]
-    #print(y)
     shufword = random.sample(word, len(word))
     return shufword
 
@@ -140,10 +136,8 @@ def check1(shufword, attempt):
 
 def check2(attempt):
     x = open('words.txt', 'r')
-    #print(attempt)
     for line in x:
         word = line.strip()
-        #print(word)
         if word == attempt:
             x.close()
             return True
@@ -152,7 +146,7 @@ def check2(attempt):
 
 def find_anagram(word):
     anagrams = ""
-    x = open('list.txt','r')
+    x = open('words.txt','r')
     y = sorted(word)
     for line in x:
         i = line.strip()
@@ -163,11 +157,12 @@ def find_anagram(word):
     return anagrams
 
 def check3(shufword, list_item):
-    x = list_item
+    x = list_item.strip()
     y = split(x)
     count = 0
-    while count != 9:
-        for i in y:
+
+    for i in y:
+        while count != 9:
             for j in shufword:
                 try:
                     if i == j:
@@ -175,21 +170,23 @@ def check3(shufword, list_item):
                         shufword.remove(j)
                 except ValueError:
                     continue
-        count += 1
-    if len(y) != 0:
-        return False
-    else:
-        return True
+            count += 1
+        if len(y) != 0:
+            return False
+        else:
+            return True
 
 
 def possible_solution(shufword):
     poss = []
-    t = open('list.txt','r')
+    t = open('words.txt','r')
     for line in t:
-        if check3(shufword, line):
-            poss.append(line)
+        word = line.strip()
+        if check3(shufword, word):
+            poss.append(word)
     print(poss)
     return len(poss)
+
 
 
 play = True
