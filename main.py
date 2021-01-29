@@ -5,9 +5,9 @@ print("\n")
 def game():
     points = 0
     nineword = word()
-    print(nineword)
+    #print(nineword)
     shufword = shuffle(nineword)
-    print("Possible solutions: ", possible_solution(shufword.copy()))
+    #print("Possible solutions: ", possible_solution(shufword.copy()))
     #print(shufword)
     print(printBoard(box(shufword.copy())))
     print("If you need to see the board again, please type \"reprint board\" and press enter. \n"
@@ -33,7 +33,8 @@ def game():
             attempted_words.append(attempt)
         else:
             count -= 1
-    print("Your score: ", points, "\n", "Your words: ", attempted_words, "\n")
+    print("Your score: ", points, "/", len(possible_solution(shufword.copy())), "possible solutions.", "\n",
+          "Your words: ", attempted_words, "\n")
 
     try :
         if len(max(attempted_words)) >= 9:
@@ -41,6 +42,12 @@ def game():
         else:
             print("The longest possible words: ", nineword, find_anagram(nineword))
     except ValueError:
+        pass
+    other_words = input("Would you like to see other possible solutions? "
+                        "Please type \"yes\" or \"no\" and press enter.\n")
+    if other_words.lower() == "yes":
+        print("\n" , get_diff(possible_solution(shufword.copy()), attempted_words))
+    else:
         pass
 
 
@@ -157,29 +164,10 @@ def find_anagram(word):
     x.close()
     return anagrams
 
-#def check3(shufword, list_item):
-#    x = list_item.strip()
-#    y = split(x)
-#    count = 0
-#    while count != 9:
-#        for i in y:
-
-#            for j in shufword:
-#                try:
-#                    if i == j:
-#                        y.remove(i)
-#                        shufword.remove(j)
-#                except ValueError:
-#                    continue
-#            count += 1
-#        if len(y) != 0:
-#            return False
-#        else:
-#            return True
-
 
 def possible_solution(shufword):
     t = open('words.txt','r')
+    pos = []
     count = 0
     for word in t:
         word_copy = [char for char in word.split('\n')[0]]
@@ -189,9 +177,16 @@ def possible_solution(shufword):
                 shufword_copy.remove(char)
                 word_copy.remove(char)
         if word_copy == []:
-            print(word.split('\n')[0], end=', ')  # delete or comment this later
+            #print(word.split('\n')[0], end=', ')  # delete or comment this later
+            p = word.strip()
+            pos.append(p)
             count += 1
-    return count
+    #print(pos)
+    #print(len(pos))
+    return pos
+
+def get_diff(a,b):
+    return (list(list(set(a) - set(b))))
 
 
 
