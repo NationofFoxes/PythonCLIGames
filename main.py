@@ -157,36 +157,41 @@ def find_anagram(word):
     x.close()
     return anagrams
 
-def check3(shufword, list_item):
-    x = list_item.strip()
-    y = split(x)
-    count = 0
-    while count != 9:
-        for i in y:
+#def check3(shufword, list_item):
+#    x = list_item.strip()
+#    y = split(x)
+#    count = 0
+#    while count != 9:
+#        for i in y:
 
-            for j in shufword:
-                try:
-                    if i == j:
-                        y.remove(i)
-                        shufword.remove(j)
-                except ValueError:
-                    continue
-            count += 1
-        if len(y) != 0:
-            return False
-        else:
-            return True
+#            for j in shufword:
+#                try:
+#                    if i == j:
+#                        y.remove(i)
+#                        shufword.remove(j)
+#                except ValueError:
+#                    continue
+#            count += 1
+#        if len(y) != 0:
+#            return False
+#        else:
+#            return True
 
 
 def possible_solution(shufword):
-    poss = []
     t = open('words.txt','r')
-    for line in t:
-        word = line.strip()
-        if check3(shufword, word):
-            poss.append(word)
-    print(poss)
-    return len(poss)
+    count = 0
+    for word in t:
+        word_copy = [char for char in word.split('\n')[0]]
+        shufword_copy = shufword.copy()
+        for char in word:
+            if char in shufword_copy:
+                shufword_copy.remove(char)
+                word_copy.remove(char)
+        if word_copy == []:
+            print(word.split('\n')[0], end=', ')  # delete or comment this later
+            count += 1
+    return count
 
 
 
