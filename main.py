@@ -29,7 +29,7 @@ def game():
             count -= 1
         elif check1(shufword.copy(), attempt) and check2(attempt):
             print("Correct!")
-            points += len(attempt)
+            points += 1
             attempted_words.append(attempt)
         else:
             count -= 1
