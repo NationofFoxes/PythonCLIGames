@@ -47,8 +47,7 @@ def game():
                         "Please type \"yes\" or \"no\" and press enter.\n")
     if other_words.lower() == "yes":
         print("\n" , get_diff(possible_solution(shufword.copy()), attempted_words))
-    else:
-        pass
+
 
 
 

@@ -105,17 +105,21 @@ def generateString(wordList):
     finalString = tempString
     
 
-    # split string into 32 lists of 12
-    
-    # generate sequential markers
-
-    # format into columns
-
     return finalString
 
 
-def updatePlayField():
-    return
+def updatePlayField(playData):
+    
+    # Split the input string into 32 lists of 12 items each
+    chunks = [playData[x:x + 12] for x in range(0, len(playData), 12)]
+
+    chunkLeft = chunks[:15]
+    chunkRight = chunks[16:]
+
+    for i in range(15):
+        left_formatted = ''.join([f"{item:^3}" for item in chunkLeft[i]])
+        right_formatted = ''.join([f"{item:^3}" for item in chunkRight[i]])
+        print(f"{left_formatted}    {right_formatted}")
 
 # selecting "(...)", "{...}", or "[...]" will remove one random non-password word from the field and updatePlayField()
 def removeDud():
@@ -151,7 +155,10 @@ def game():
     password = getPassword(wordList)
     print("The password for this game is: ", password, '\n')
     
-    print(generateString(wordList))
+    baseString = generateString(wordList)
+    # print(baseString)
+    # print('')
+    updatePlayField(baseString)
     while attempts > 0:
         attempt = getAttempt()
         test = getLikeness(password, attempt)
