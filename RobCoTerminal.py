@@ -74,16 +74,16 @@ def getWords(x):
 
 # Selects the password from the randomly generated list
 def getPassword(list):
-    password = random.choice(list[0])
+    password = random.choice(list)
     return str(password)
 
-def generateString(wordList):
+def generateString(wordList, wordLen):
     characters = ['(',')','{','}','[',']','!','?','^','&',';',':','%','/','\\']
     tempList = []
-    characterCount = wordList[1]*16
+    characterCount = wordLen*16
     numRandomCharacters = 384 - characterCount - 1
 
-    tempList = wordList[0]
+    tempList = wordList
     count = 0
     # ensures that the first character is always a non-word. This will help in the adjacency test during shuffling.
     tempList.insert(0, random.choice(characters))
@@ -96,7 +96,7 @@ def generateString(wordList):
     adjacent = True
     while adjacent:
         for index, item in enumerate(tempList):
-            if len(item) == wordList[1] & len(tempList[index-1]) == wordList[1]:
+            if len(item) == wordLen & len(tempList[index-1]) == wordLen:
                 random.shuffle(tempList)
             else:
                 adjacent = False
@@ -123,6 +123,13 @@ def updatePlayField(playData):
         right_formatted = ''.join([f"{item:^3}" for item in chunkRight[i]])
         print(f"{left_formatted}    {right_formatted}")
 
+# replaces list item with period. To be used for incorrect guesses and removing duds.
+def replace(word, baseString):
+    if word in baseString:
+        updatedString = baseString.replace(word, '.'*len(word))
+
+    return updatedString
+
 # selecting "(...)", "{...}", or "[...]" will remove one random non-password word from the field and updatePlayField()
 def removeDud():
     return
@@ -148,29 +155,37 @@ def getLikeness(password, attempt):
 # Coordinates that lead to other characters (or brackets that don't close) will result in a thrown error.
 def getAttempt():
     attempt = input(">")
-    return attempt
+    return attempt.upper()
 
 def game():
     attempts = 4
     difficulty = getDifficulty()
-    wordList = getWords(difficulty)
+    wordData = getWords(difficulty)
+    wordList = wordData[0]
+    wordLen = wordData[1]
     print("Words List: ", wordList)
     password = getPassword(wordList)
     print("The password for this game is: ", password, '\n')
     
-    baseString = generateString(wordList)
+    baseString = generateString(wordList, wordLen)
     print("baseString",baseString)
     print('')
     updatePlayField(baseString)
     while attempts > 0:
         attempt = getAttempt()
         test = getLikeness(password, attempt)
-        if test == wordList[1]:
+        if test == wordLen:
             print("SUCCESSFUL. WELL DONE.")
             exit()
         else:
-            print("ENTRY DENIED.\nLikeness: ", test)
-            attempts -= 1
+            if attempt in wordList:
+                attempts -= 1
+                updatedString = replace(attempt, baseString)
+                updatePlayField(updatedString)
+                print("ENTRY DENIED.\nAttempts Remaining: ", attempts)
+                print("Likeness: ", test)
+            else:
+                print('ERROR. TRY AGAIN.')
     print("OUT OF ATTEMPTS. PROGRAM TERMINATED.")
     exit()
 
