@@ -112,11 +112,13 @@ def updatePlayField(playData):
     
     # Split the input string into 32 lists of 12 items each
     chunks = [playData[x:x + 12] for x in range(0, len(playData), 12)]
-
-    chunkLeft = chunks[:15]
+    print('chunks len: ', len(chunks))
+    chunkLeft = chunks[:16]
+    print('chunkLeft len: ', len(chunkLeft))
     chunkRight = chunks[16:]
+    print('chunkRight len: ', len(chunkRight))
 
-    for i in range(15):
+    for i in range(16):
         left_formatted = ''.join([f"{item:^3}" for item in chunkLeft[i]])
         right_formatted = ''.join([f"{item:^3}" for item in chunkRight[i]])
         print(f"{left_formatted}    {right_formatted}")
@@ -152,12 +154,13 @@ def game():
     attempts = 4
     difficulty = getDifficulty()
     wordList = getWords(difficulty)
+    print("Words List: ", wordList)
     password = getPassword(wordList)
     print("The password for this game is: ", password, '\n')
     
     baseString = generateString(wordList)
-    # print(baseString)
-    # print('')
+    print("baseString",baseString)
+    print('')
     updatePlayField(baseString)
     while attempts > 0:
         attempt = getAttempt()
