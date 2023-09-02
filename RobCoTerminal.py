@@ -15,6 +15,10 @@ import random
 # 1 incorrect answer is removed. 
 # Similarly, if <> is selected, the attempt counter is reset. 
 
+
+
+# note: previously failed attempts show back up on the playfield
+
 class BadUserInputError(Exception):
     pass
 
@@ -112,16 +116,24 @@ def updatePlayField(playData):
     
     # Split the input string into 32 lists of 12 items each
     chunks = [playData[x:x + 12] for x in range(0, len(playData), 12)]
-    print('chunks len: ', len(chunks))
     chunkLeft = chunks[:16]
-    print('chunkLeft len: ', len(chunkLeft))
     chunkRight = chunks[16:]
-    print('chunkRight len: ', len(chunkRight))
+
+    startNum = random.randint(255,255*2)
+    columnID = ['a', 'b', 'c', 'd', 'e', 'f', 'g', 'h', 'i', 'j', 'k', 'l']
+
+    print("     ", end="")
+    for identifier in columnID:
+        print(f"{identifier:^3}", end="",)
+    print("        ", end="")
+    for identifier in columnID:
+        print(f"{identifier:^3}", end="")
+    print()
 
     for i in range(16):
         left_formatted = ''.join([f"{item:^3}" for item in chunkLeft[i]])
         right_formatted = ''.join([f"{item:^3}" for item in chunkRight[i]])
-        print(f"{left_formatted}    {right_formatted}")
+        print(f"{hex(startNum + i)[2:].upper().zfill(2)}: {left_formatted}    {hex(startNum + i + 16)[2:].upper().zfill(2)}:{right_formatted}")
 
 # replaces list item with period. To be used for incorrect guesses and removing duds.
 def replace(word, baseString):
@@ -131,13 +143,20 @@ def replace(word, baseString):
     return updatedString
 
 # selecting "(...)", "{...}", or "[...]" will remove one random non-password word from the field and updatePlayField()
-def removeDud():
+def removeDud(password, wordList, baseString):
+    dud = password
+    while dud == password:
+        dud = random.choice(wordList)
+
+    updatedString = replace(dud, baseString)
+    return updatedString
+
+def parentheseCheck(coordinates):
+
     return
 
-# selecting "<...>" in a single section will reset attempts back to 5
-def resetAttempts():
+def angleBracketCheck(coordinates):
     return
-
 
 
 # accepts the correct word and the user attempt, outputs int  that represents number of letters in the correct place
@@ -180,10 +199,15 @@ def game():
         else:
             if attempt in wordList:
                 attempts -= 1
-                updatedString = replace(attempt, baseString)
-                updatePlayField(updatedString)
+                baseString = replace(attempt, baseString)
+                updatePlayField(baseString)
                 print("ENTRY DENIED.\nAttempts Remaining: ", attempts)
                 print("Likeness: ", test)
+            # elif parenthesesCheck()
+                # updatedString = removeDud(password, wordList, baseString)
+                # updatePlayField(updatedString)
+            # elif angleBracketCheck()
+                # attempts = 4
             else:
                 print('ERROR. TRY AGAIN.')
     print("OUT OF ATTEMPTS. PROGRAM TERMINATED.")
