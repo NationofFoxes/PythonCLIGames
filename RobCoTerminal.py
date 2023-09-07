@@ -158,7 +158,6 @@ def getDud(password, wordList):
     dud = password
     while dud == password:
         dud = random.choice(wordList)
-    print(dud)
     return dud
 
 
@@ -280,7 +279,7 @@ def game():
                     updatePlayField(baseString)
                     wordsList.remove(attempt)
                     print("ENTRY DENIED.\nAttempts Remaining: ", attempts)
-                    print("Likeness: ", test)
+                    print("Likeness: ", test, '\n')
                 elif attempt not in wordsList:
                     x = getChar(attempt, baseString)
                     match x:
@@ -288,8 +287,7 @@ def game():
                             raise BadUserInputError(errorMessage)
                         case 1:             #coordinates lead to closed parentheses, square or squigly brackets -> dud removed
                             print("Removing dud...")
-                            dud = getDud(password, wordsList)        #problem here <- wordlist is transformed somewhere into list of characters + words
-                            print(dud)
+                            dud = getDud(password, wordsList)
                             wordsList.remove(dud)
                             baseString = replace(dud, baseString)
                             updatePlayField(baseString)
