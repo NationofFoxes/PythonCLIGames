@@ -30,7 +30,7 @@ class BadUserInputError(Exception):
     pass
 
 def getDifficulty():
-    level = input("Please choose your difficulty:\n(1) Novice\n(2) Advanced\n(3) Expert\n(4) Master\n(5) Impossible\n>")
+    level = input("\nPlease choose your difficulty:\n(1) Novice\n(2) Advanced\n(3) Expert\n(4) Master\n(5) Impossible\n>")
     if level.isdigit():
         if 1 <= int(level) <= 5:
             return int(level)
@@ -131,7 +131,7 @@ def updatePlayField(baseString):
 
     global startNum 
     columnID = ['a', 'b', 'c', 'd', 'e', 'f', 'g', 'h', 'i', 'j', 'k', 'l']
-
+    print('\n')
     print("     ", end="")
     for identifier in columnID:
         print(f"{identifier:^3}", end="",)
@@ -246,6 +246,7 @@ def game():
     global baseString
     global wordsList
     global wordLen
+    wordAttempts = []
     attempts = 4
     difficulty = getDifficulty()
     wordData = getWords(difficulty)
@@ -279,7 +280,13 @@ def game():
                     baseString = replace(attempt, baseString)
                     updatePlayField(baseString)
                     wordsList.remove(attempt)
-                    print("ENTRY DENIED.\nAttempts Remaining: ", attempts)
+                    wordAttempts.append(attempt)
+                    print("\nAttempts:    Likeness:")
+                    for item in wordAttempts:
+                        format_string = f"{item:<13}{getLikeness(password, item)}"
+
+                        print(format_string)
+                    print("\nENTRY DENIED.\nAttempts Remaining: ")
                     print("Likeness: ", test, '\n')
                 elif attempt not in wordsList:
                     x = getChar(attempt, baseString)
