@@ -38,7 +38,7 @@ def getDifficulty():
             print("Choice out of range, please select again.\n")
             return getDifficulty()  # Return the result of the recursive call
     else:
-        print("Please input the number only.\n")
+        print("\nPlease input the number only.\n")
         return getDifficulty()  # Return the result of the recursive call
 
 
@@ -269,6 +269,8 @@ def game():
             print("Instructions: \nType a word from the grid. Your attempt will be evaluated, and the number of letters \nin the correct position will be reported.")
             print("Remove an incorrect word by typing the coordinates of an opening parentheses, square \nor curly brackets which has an enclosing partner in the same section.")
             print("Reset your attempts by typing the coordinates of an opening angle bracket with \nan enclosing partner in the same section")
+            print("E.g. <d17b>, <30Bk>, or <cdbf> (No angle brackets)")
+            print("Note: All inputs ignore caps\n")
             print("You have ", attempts, " remaining attempts.\n")
         else:
             try:
@@ -296,7 +298,7 @@ def game():
                         case 3:             #coordinates lead to letter -> attempt check... on second thoughts I couldn't be bothered right now
                             print("Please type the word.")
                         case 4:             #User has already used parentheses set
-                            print("Duplicate coordinates detected. Operation failure.")
+                            print("Duplicate coordinates detected. Operation failed.")
 
                 else:
                     raise BadUserInputError(errorMessage)
