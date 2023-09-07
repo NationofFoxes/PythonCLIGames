@@ -286,7 +286,7 @@ def game():
                         format_string = f"{item:<13}{getLikeness(password, item)}"
 
                         print(format_string)
-                    print("\nENTRY DENIED.\nAttempts Remaining: ")
+                    print("\nENTRY DENIED.\nAttempts Remaining: ", attempts)
                     print("Likeness: ", test, '\n')
                 elif attempt not in wordsList:
                     x = getChar(attempt, baseString)
