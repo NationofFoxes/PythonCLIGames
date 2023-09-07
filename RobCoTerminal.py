@@ -104,7 +104,6 @@ def generateString(wordList, wordLen):
         count += 1
     
     # test for word adjacency
-    # this section needs rethinking in the morning
     adjacent = True
     while adjacent:
         for index, item in enumerate(tempList):
