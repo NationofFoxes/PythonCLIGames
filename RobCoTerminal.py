@@ -18,26 +18,29 @@ import random
 
 
 # note: previously failed attempts show back up on the playfield
-startNum= random.randint(255,255*2)
+startNum= random.randint(256, 4095)
 characters = ['(',')','{','}','[',']','!','?','^','&',';',':','%','/','<','>']
 wordsList = []
 baseString = ''
 wordLen = 0
+errorMessage = "Invalid input. Please try again."
+coordinateList = []
 
 class BadUserInputError(Exception):
     pass
 
 def getDifficulty():
-    level = input("Please choose your difficulty:\n(1) Novice\n(2) Advanced\n(3) Expert\n(4) Master\n(5) Impossible\n")
+    level = input("Please choose your difficulty:\n(1) Novice\n(2) Advanced\n(3) Expert\n(4) Master\n(5) Impossible\n>")
     if level.isdigit():
         if 1 <= int(level) <= 5:
             return int(level)
         else:
             print("Choice out of range, please select again.\n")
-            getDifficulty()
+            return getDifficulty()  # Return the result of the recursive call
     else:
         print("Please input the number only.\n")
-        getDifficulty()
+        return getDifficulty()  # Return the result of the recursive call
+
 
 # Accepts number from getDifficulty to determine how long the words should be.
 def getWords(x):
@@ -160,71 +163,68 @@ def getDud(password, wordList):
 
 
 def getChar(coordinate, baseString):
-    global characters
-    global startNum
+    global coordinateList
     column_identifiers = ['A','B','C','D','E','F','G','H','I','J','K','L']
     alphabet = 'abcdefghijklmnopqrstuvwxyz'
     row_identifiers = [hex(i+startNum)[2:].upper().zfill(2) for i in range(32)]
-    print(row_identifiers)
 
-    columnID = coordinate[3]
-    rowID = coordinate[:3]
-    print("Row: ", rowID)
-    print("Column: ", columnID)
+    try:
+        columnID = coordinate[3]
+        rowID = coordinate[:3]
 
+        if rowID not in row_identifiers or columnID not in column_identifiers:
+            return 0
 
-    # Convert rowID to an index
-    if rowID in row_identifiers:
+        # Convert rowID to an index
         row_index = row_identifiers.index(rowID)
-    else:
-        print("Invalid Attempt. Please try again. (rowID)")
-        return
 
-    # Convert columnID to an index
-    if columnID in column_identifiers:
+        # Convert columnID to an index
         column_index = column_identifiers.index(columnID)
-    else:
-        print("Invalid Attempt. Please try again. (columnID)")
-        return
 
-    # Split the input string into 32 lists of 12 items each
-    chunks = splitString(baseString)
+        # Split the input string into 32 lists of 12 items each
+        chunks = splitString(baseString)
 
-    # Extract the character at the specified coordinates
-    chunk = chunks[row_index]
-    character = chunks[row_index][column_index]
+        # Extract the character at the specified coordinates
+        chunk = chunks[row_index]
+        character = chunks[row_index][column_index]
 
-    print('Character: ', character)
+        if coordinate in coordinateList:
+            return 4
 
-    # Check if the character is an opening bracket and if there's a corresponding closing bracket in the same chunk
-    if character in '([{':
-        print("bracket found")
-        if character == '(':
-            closing_bracket = ')'
-        elif character == '[':
-            closing_bracket = ']'
-        elif character == '{':
-            closing_bracket = '}'
-        else:
-            closing_bracket = None
-        
-        # Iterate through the characters in the chunk
-        for char in chunk[column_index:]:
-            if char == closing_bracket:
-                print("End bracket found")
-                return 1
-        
-    # Check if the character is an angle bracket and if there's a corresponding angle bracket in the same chunk
-    elif character == '<':
-        closing_bracket = '>'
-        for char in chunk[column_index:]:
-            if char == closing_bracket:
-                print("End bracket found")
-                return 2
-    # Check if the character is a lowercase alphabet letter
-    elif character in alphabet.upper():
-        return 3
-    return 0
+        # Check if the character is an opening bracket and if there's a corresponding closing bracket in the same chunk
+        elif character in '([{':
+            if character == '(':
+                closing_bracket = ')'
+            elif character == '[':
+                closing_bracket = ']'
+            elif character == '{':
+                closing_bracket = '}'
+            else:
+                closing_bracket = None
+
+            # Iterate through the characters in the chunk
+            for char in chunk[column_index:]:
+                if char == closing_bracket:
+                    coordinateList.append(coordinate)
+                    return 1
+
+        # Check if the character is an angle bracket and if there's a corresponding angle bracket in the same chunk
+        elif character == '<':
+            closing_bracket = '>'
+            for char in chunk[column_index:]:
+                if char == closing_bracket:
+                    coordinateList.append(coordinate)
+                    return 2
+
+        # Check if the character is a lowercase alphabet letter
+        elif character in alphabet.upper():
+            return 3
+
+        return 0  # Default case: Invalid input
+    except Exception as e:
+        raise BadUserInputError(str(e))
+
+    
 
 
 # accepts the correct word and the user attempt, outputs int  that represents number of letters in the correct place
@@ -252,62 +252,60 @@ def game():
     difficulty = getDifficulty()
     wordData = getWords(difficulty)
     wordLen += wordData
-    print("Words List 1: ", wordsList)
     password = getPassword(wordsList)
-    print("The password for this game is: ", password, '\n')
+    # print("The password for this game is: ", password, '\n')
     wordsListTemp = wordsList
-    print("Words List 1.5: ", wordsList)
     
     baseString = generateString(wordsListTemp, wordLen)
-    print("baseString",baseString)
-    print("Words List 2: ", wordsList)
     print('')
+    print("Password Length: ", wordLen)
+    print("Type \"--help\" at any time for instructions.\n")
     updatePlayField(baseString)
-    print("Words List 3: ", wordsList)
     while attempts > 0:
         attempt = getAttempt()
         test = getLikeness(password, attempt)
         if test == wordLen:
             print("SUCCESSFUL. WELL DONE.")
             exit()
+        elif attempt == "--HELP":
+            print("Instructions: \nType a word from the grid. Your attempt will be evaluated, and the number of letters \nin the correct position will be reported.")
+            print("Remove an incorrect word by typing the coordinates of an opening parentheses, square \nor curly brackets which has an enclosing partner in the same section.")
+            print("Reset your attempts by typing the coordinates of an opening angle bracket with \nan enclosing partner in the same section")
+            print("You have ", attempts, " remaining attempts.\n")
         else:
-            if attempt in wordsList:
-                attempts -= 1
-                baseString = replace(attempt, baseString)
-                updatePlayField(baseString)
-                wordsList.remove(attempt)
-                print("ENTRY DENIED.\nAttempts Remaining: ", attempts)
-                print("Likeness: ", test)
-            elif attempt not in wordsList:
-                x = getChar(attempt, baseString)
-                match x:
-                    case 0:             #coordinates lead to nothing and/or unclosed bracket
-                        print("Invalid Attempt. Please try again.")
-                    case 1:             #coordinates lead to closed parentheses, square or squigly brackets -> dud removed
-                        print("Removing dud from list: ", wordsList)
-                        dud = getDud(password, wordsList)        #problem here <- wordlist is transformed somewhere into list of characters + words
-                        print(dud)
-                        wordsList.remove(dud)
-                        baseString = replace(dud, baseString)
-                        updatePlayField(baseString)
-                    case 2:             #coordinates lead to angle brackets -> attempts reset
-                        attempts = 4
-                        print("Attempts reset to 4.")
-                    case 3:             #coordinates lead to letter -> attempt check
-                        print("Please type the word.")
+            try:
+                if attempt in wordsList:
+                    attempts -= 1
+                    baseString = replace(attempt, baseString)
+                    updatePlayField(baseString)
+                    wordsList.remove(attempt)
+                    print("ENTRY DENIED.\nAttempts Remaining: ", attempts)
+                    print("Likeness: ", test)
+                elif attempt not in wordsList:
+                    x = getChar(attempt, baseString)
+                    match x:
+                        case 0:             #coordinates lead to nothing and/or unclosed bracket
+                            raise BadUserInputError(errorMessage)
+                        case 1:             #coordinates lead to closed parentheses, square or squigly brackets -> dud removed
+                            print("Removing dud...")
+                            dud = getDud(password, wordsList)        #problem here <- wordlist is transformed somewhere into list of characters + words
+                            print(dud)
+                            wordsList.remove(dud)
+                            baseString = replace(dud, baseString)
+                            updatePlayField(baseString)
+                        case 2:             #coordinates lead to angle brackets -> attempts reset
+                            attempts = 4
+                            print("Attempts reset to 4.")
+                        case 3:             #coordinates lead to letter -> attempt check... on second thoughts I couldn't be bothered right now
+                            print("Please type the word.")
+                        case 4:             #User has already used parentheses set
+                            print("Duplicate coordinates detected. Operation failure.")
 
-            else:
-                print("Invalid. Please try again.")
+                else:
+                    raise BadUserInputError(errorMessage)
+            except BadUserInputError as e:
+                print(e)
     print("OUT OF ATTEMPTS. PROGRAM TERMINATED.")
     exit()
 
-
 game()
-
-
-# ToDo:
-# match coordinate system to word check
-# fix removeDud() bug
-
-
-
