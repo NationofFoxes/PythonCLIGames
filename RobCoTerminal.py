@@ -20,8 +20,9 @@ import random
 # note: previously failed attempts show back up on the playfield
 startNum= random.randint(255,255*2)
 characters = ['(',')','{','}','[',']','!','?','^','&',';',':','%','/','<','>']
+wordsList = []
 baseString = ''
-playData = []
+wordLen = 0
 
 class BadUserInputError(Exception):
     pass
@@ -40,8 +41,8 @@ def getDifficulty():
 
 # Accepts number from getDifficulty to determine how long the words should be.
 def getWords(x):
+    global wordsList
     allWords = []
-    wordstoPrint = []
     try:
         word = open('words.txt', 'r')
     except FileNotFoundError:
@@ -73,12 +74,12 @@ def getWords(x):
     while count <= 15:
         temp = random.choice(allWords)
         newtemp = temp[:-1].upper()
-        wordstoPrint.append(newtemp)
+        wordsList.append(newtemp)
         allWords.remove(temp)
         count += 1
 
     # print("\nWords to be printed in field: ", wordstoPrint)
-    return wordstoPrint, wordLen
+    return wordLen
 
 # Selects the password from the randomly generated list
 def getPassword(list):
@@ -91,7 +92,7 @@ def generateString(wordList, wordLen):
     characterCount = wordLen*16
     numRandomCharacters = 384 - characterCount - 1
 
-    tempList = wordList
+    tempList = wordList[:]
     count = 0
     # ensures that the first character is always a non-word. This will help in the adjacency test during shuffling.
     tempList.insert(0, random.choice(characters))
@@ -154,6 +155,7 @@ def getDud(password, wordList):
     dud = password
     while dud == password:
         dud = random.choice(wordList)
+    print(dud)
     return dud
 
 
@@ -192,9 +194,6 @@ def getChar(coordinate, baseString):
     chunk = chunks[row_index]
     character = chunks[row_index][column_index]
 
-    # Initialize a stack to track open brackets
-    bracket_stack = []
-
     print('Character: ', character)
 
     # Check if the character is an opening bracket and if there's a corresponding closing bracket in the same chunk
@@ -209,10 +208,10 @@ def getChar(coordinate, baseString):
         else:
             closing_bracket = None
         
-        bracket_stack.append(chunk[column_index])
         # Iterate through the characters in the chunk
         for char in chunk[column_index:]:
             if char == closing_bracket:
+                print("End bracket found")
                 return 1
         
     # Check if the character is an angle bracket and if there's a corresponding angle bracket in the same chunk
@@ -220,6 +219,7 @@ def getChar(coordinate, baseString):
         closing_bracket = '>'
         for char in chunk[column_index:]:
             if char == closing_bracket:
+                print("End bracket found")
                 return 2
     # Check if the character is a lowercase alphabet letter
     elif character in alphabet.upper():
@@ -245,22 +245,25 @@ def getAttempt():
     return attempt.upper()
 
 def game():
-    global playData
     global baseString
+    global wordsList
+    global wordLen
     attempts = 4
     difficulty = getDifficulty()
     wordData = getWords(difficulty)
-    wordList = wordData[0]
-    wordLen = wordData[1]
-    print("Words List: ", wordList)
-    password = getPassword(wordList)
+    wordLen += wordData
+    print("Words List 1: ", wordsList)
+    password = getPassword(wordsList)
     print("The password for this game is: ", password, '\n')
+    wordsListTemp = wordsList
+    print("Words List 1.5: ", wordsList)
     
-    baseString = generateString(wordList, wordLen)
+    baseString = generateString(wordsListTemp, wordLen)
     print("baseString",baseString)
+    print("Words List 2: ", wordsList)
     print('')
-    playData = splitString(baseString)
     updatePlayField(baseString)
+    print("Words List 3: ", wordsList)
     while attempts > 0:
         attempt = getAttempt()
         test = getLikeness(password, attempt)
@@ -268,28 +271,30 @@ def game():
             print("SUCCESSFUL. WELL DONE.")
             exit()
         else:
-            if attempt in wordList:
+            if attempt in wordsList:
                 attempts -= 1
                 baseString = replace(attempt, baseString)
                 updatePlayField(baseString)
+                wordsList.remove(attempt)
                 print("ENTRY DENIED.\nAttempts Remaining: ", attempts)
                 print("Likeness: ", test)
-            elif attempt not in wordList:
+            elif attempt not in wordsList:
                 x = getChar(attempt, baseString)
                 match x:
                     case 0:             #coordinates lead to nothing and/or unclosed bracket
                         print("Invalid Attempt. Please try again.")
                     case 1:             #coordinates lead to closed parentheses, square or squigly brackets -> dud removed
-                        print("Removing dud...")
-                        dud = getDud(password, wordList)
+                        print("Removing dud from list: ", wordsList)
+                        dud = getDud(password, wordsList)        #problem here <- wordlist is transformed somewhere into list of characters + words
                         print(dud)
+                        wordsList.remove(dud)
                         baseString = replace(dud, baseString)
                         updatePlayField(baseString)
                     case 2:             #coordinates lead to angle brackets -> attempts reset
                         attempts = 4
                         print("Attempts reset to 4.")
                     case 3:             #coordinates lead to letter -> attempt check
-                        pass
+                        print("Please type the word.")
 
             else:
                 print("Invalid. Please try again.")
