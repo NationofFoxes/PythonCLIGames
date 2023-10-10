@@ -70,7 +70,7 @@ class Board:
     def print_board(self):
         # Print the chessboard with fixed-width squares, labels, and dividers
         print()
-        vert_label = "    a     b     c     d     e     f     g     h"
+        vert_label = "     a     b     c     d     e     f     g     h"
         divider = "  +-----+-----+-----+-----+-----+-----+-----+-----+"
         print(vert_label)
         print(divider)
@@ -89,10 +89,76 @@ class Board:
         print(vert_label)
 
 
-# Example usage:
-if __name__ == "__main__":
-    game_board = Board()
-    game_board.starting_position()
-    game_board.print_board()
+class Game:
+    def __init__(self):
+        self.game_board = Board()
+        self.game_board.starting_position()
+        self.game_board.print_board()
 
+    def move_piece(self, move, turn):
+        # Validate and parse the user's input move
+        if not self.is_valid_move_syntax(move):
+            print("Invalid move syntax. Please use the format YX to YX.")
+            return turn
+
+        origin, target = move.split(" to ")
+        if not self.is_valid_coordinate(origin) or not self.is_valid_coordinate(target):
+            print("Invalid coordinates. Use letters from a to h and numbers from 1 to 8.")
+            return turn
+
+        # Convert coordinates to indices (0-based)
+        origin_col, origin_row = ord(origin[0]) - ord('a'), 8 - int(origin[1])
+        target_col, target_row = ord(target[0]) - ord('a'), 8 - int(target[1])
+
+        if turn:
+            color = 'W'
+        else:
+            color = 'B'
+
+        # Perform the move logic
+        piece = self.game_board.board[origin_row][origin_col]
+        if isinstance(piece, Piece) and piece.color == color:
+            # Check if the target position is empty
+            if not isinstance(self.game_board.board[target_row][target_col], Piece):
+                # Move the piece to the target position
+                self.game_board.board[target_row][target_col] = piece
+                self.game_board.board[origin_row][origin_col] = ' '
+                self.game_board.print_board()
+                return not turn
+            else:
+                print("Invalid move. Target position is occupied.")
+                return turn
+        else:
+            print("No", color, "piece at the specified origin.")
+            return turn
+
+
+    @staticmethod
+    def is_valid_move_syntax(move):
+        # Implement syntax validation logic here
+        # For example, you can check if the move has the format "YX to YX"
+        return True
+
+    @staticmethod
+    def is_valid_coordinate(coordinate):
+        # Implement coordinate validation logic here
+        # For example, you can check if the coordinate consists of a letter from 'a' to 'h'
+        # followed by a digit from '1' to '8'
+        return True
+    
+    def get_piece_at_origin():
+        pass
+    
+    def run(self):
+        white_turn = True
+        while True:
+            if white_turn:
+                user_input = input("White to move. \n>")
+            else:
+                user_input = input("Black to move. \n>")
+            white_turn = game.move_piece(user_input, white_turn)
+
+if __name__ == "__main__":
+    game = Game()
+    game.run()
 
