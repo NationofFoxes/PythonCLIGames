@@ -5,25 +5,13 @@ class Piece:
         self.color = color
         self.id = id  # Piece ID ('K', 'Q', 'R', 'Kn', 'B', 'P')
 
-    def move(self, origin, target):
-        # Check if the move is valid according to the rules of the specific piece
-        if self.is_valid_move(origin, target):
-            # Implement the actual move logic here
-            pass
-        else:
-            print("Invalid move!")
-
-    def is_valid_move(self, origin, target):
-        # Implement the rules for valid moves for each piece
-        pass
-
     
 class King(Piece):
     def __init__(self, color):
         piece_id = color + "K"
         super().__init__(color, piece_id)
 
-    def is_valid_move(self, origin, target):
+    def is_valid_move(self, origin, target, game_board):
         # TODO
         # Write a method that returns True if there is one space between the origin and target 
         # AND the target space is not at risk of being taken by a piece of the opposing colour
@@ -35,11 +23,49 @@ class Queen(Piece):
         piece_id = color + "Q"
         super().__init__(color, piece_id)
 
-    def is_valid_move(self, origin, target):
-        # TODO
-        # Write a method that returns True if the path between origin and target is orthonogal or diagonal (straight lines only)
-        # AND the spaces on the travelled path are clear
-        return True
+    def is_valid_move(self, origin, target, game_board):
+        # Convert coordinates to indices (0-based)
+        origin_col, origin_row = ord(origin[0]) - ord('a'), 8 - int(origin[1])
+        target_col, target_row = ord(target[0]) - ord('a'), 8 - int(target[1])
+
+        # Check if the move is within bounds
+        if not (0 <= target_row < 8 and 0 <= target_col < 8):
+            return False
+
+        # Check if the move is either along the same row, the same column, or a diagonal
+        row_diff = abs(target_row - origin_row)
+        col_diff = abs(target_col - origin_col)
+
+        if row_diff == 0 or col_diff == 0 or row_diff == col_diff:
+            # Check for obstructions along the row
+            if origin_row == target_row:
+                min_col, max_col = (origin_col, target_col) if origin_col < target_col else (target_col, origin_col)
+                for col in range(min_col + 1, max_col):
+                    if isinstance(game_board.board[origin_row][col], Piece):
+                        return False
+
+            # Check for obstructions along the column
+            if origin_col == target_col:
+                min_row, max_row = (origin_row, target_row) if origin_row < target_row else (target_row, origin_row)
+                for row in range(min_row + 1, max_row):
+                    if isinstance(game_board.board[row][origin_col], Piece):
+
+                        return False
+
+            # Check for obstructions along the diagonal path
+            if row_diff == col_diff:
+                min_row, max_row = (origin_row, target_row) if origin_row < target_row else (target_row, origin_row)
+                min_col, max_col = (origin_col, target_col) if origin_col < target_col else (target_col, origin_col)
+                for i in range(1, row_diff):
+                    col = min_col + i
+                    row = min_row + i
+                    if isinstance(game_board.board[row][col], Piece):
+                        return False
+
+            return True
+
+        return False
+
 
 class Knight(Piece):
     def __init__(self, color):
@@ -47,7 +73,7 @@ class Knight(Piece):
         super().__init__(color, piece_id)
 
     
-    def is_valid_move(self, origin, target):
+    def is_valid_move(self, origin, target, game_board):
         # Check if the move is valid for a knight
 
         # Convert coordinates to indices (0-based)
@@ -74,33 +100,68 @@ class Bishop(Piece):
         piece_id = color + "B"
         super().__init__(color, piece_id)
 
-    def is_valid_move(self, origin, target):
-        # TODO Write a method that returns True if the move is diagonal AND all spaces on the diagonal path are clear
+    def is_valid_move(self, origin, target, game_board):
+        # Convert coordinates to indices (0-based)
+        origin_col, origin_row = ord(origin[0]) - ord('a'), 8 - int(origin[1])
+        target_col, target_row = ord(target[0]) - ord('a'), 8 - int(target[1])
+
+        # Check if the move is a diagonal one
+        col_diff = abs(target_col - origin_col)
+        row_diff = abs(target_row - origin_row)
+
+        if col_diff != row_diff:
+            return False  # Not a diagonal move
+
+        # Check if there are any pieces in the diagonal path
+        min_col, max_col = min(origin_col, target_col), max(origin_col, target_col)
+        min_row, max_row = min(origin_row, target_row), max(origin_row, target_row)
+
+        for i in range(1, col_diff):
+            col = min_col + i
+            row = min_row + i
+            if isinstance(game_board[row][col], Piece):
+                return False  # There's a piece in the path
+
         return True
+
 
 class Rook(Piece):
     def __init__(self, color):
         piece_id = color + "R"
         super().__init__(color, piece_id)
-    
-    def is_valid_move(self, origin, target):
-        # Check if the move is valid for a rook
 
+    def is_valid_move(self, origin, target, game_board):
         # Convert coordinates to indices (0-based)
         origin_col, origin_row = ord(origin[0]) - ord('a'), 8 - int(origin[1])
         target_col, target_row = ord(target[0]) - ord('a'), 8 - int(target[1])
 
-        # TODO adjust this code to check the spaces in between origin and target to ensure they are not occupied
+        # Check if the move is within bounds and is either along the same row or the same column
+        if not (0 <= target_row < 8 and 0 <= target_col < 8 and (origin_row == target_row or origin_col == target_col)):
+            return False
 
-        if origin_row == target_row or origin_col == target_col:
-            return True
+        # Check for obstructions along the row
+        if origin_row == target_row:
+            min_col, max_col = (origin_col, target_col) if origin_col < target_col else (target_col, origin_col)
+            for col in range(min_col + 1, max_col):
+                if isinstance(game_board.board[origin_row][col], Piece):
+                    return False
+
+        # Check for obstructions along the column
+        if origin_col == target_col:
+            min_row, max_row = (origin_row, target_row) if origin_row < target_row else (target_row, origin_row)
+            for row in range(min_row + 1, max_row):
+                if isinstance(game_board.board[row][origin_col], Piece):
+                    return False
+
+        return True
+
 
 class Pawn(Piece):
     def __init__(self, color):
         piece_id = color + "P"
         super().__init__(color, piece_id)
 
-    def is_valid_move(self, origin, target):
+    def is_valid_move(self, origin, target, game_board):
         # Check if the move is valid for a pawn
 
         # Convert coordinates to indices (0-based)
@@ -205,7 +266,7 @@ class Game:
 
         # Perform the move logic
         piece = self.game_board.board[origin_row][origin_col]
-        if isinstance(piece, Piece) and piece.color == color and piece.is_valid_move(origin, target):
+        if isinstance(piece, Piece) and piece.color == color and piece.is_valid_move(origin, target, self.game_board):
             # Check if the target position is occupied by opposing piece
             if isinstance(self.game_board.board[target_row][target_col], Piece) and piece.color != self.game_board.board[target_row][target_col].color:
                 # target piece is taken, removed from board
