@@ -12,10 +12,40 @@ class King(Piece):
         super().__init__(color, piece_id)
 
     def is_valid_move(self, origin, target, game_board):
+        # Convert coordinates to indices (0-based)
+        origin_col, origin_row = ord(origin[0]) - ord('a'), 8 - int(origin[1])
+        target_col, target_row = ord(target[0]) - ord('a'), 8 - int(target[1])
+
+        # Check if the move is within bounds
+        if not (0 <= target_row < 8 and 0 <= target_col < 8):
+            return False
+
+        col_diff = abs(target_col - origin_col)
+        row_diff = abs(target_row - origin_row)
+
+        if (col_diff == 1 or row_diff == 1) and origin != target:
+            return self.safe_check(target, game_board)
+
+        return False
+
+    def safe_check(self, target, game_board):
+        # TODO:
+        # Implement safety checking logic here
+        # loop through rows and columns
+        # if isinstance(i, Piece) and i.piece_id != self.piece_id
+        #   loop through possible moves
+        #       if possible_move == target
+        #           return False
+        return True  # Modify this logic as needed
+    
+    def get_possible_moves(self, origin, game_board):
+        possible_moves = []
         # TODO
-        # Write a method that returns True if there is one space between the origin and target 
-        # AND the target space is not at risk of being taken by a piece of the opposing colour
-        return True
+        # This method accepts a point of origin and the state of the game board. 
+        # It should return a list of strings (formated in the standard format of Column, Row (e.g. a1), 
+        # that represents all the locations that piece can go legally)
+        pass
+
 
 
 class Queen(Piece):
@@ -65,6 +95,14 @@ class Queen(Piece):
             return True
 
         return False
+    
+    def get_possible_moves(self, origin, game_board):
+        possible_moves = []
+        # TODO
+        # This method accepts a point of origin and the state of the game board. 
+        # It should return a list of strings (formated in the standard format of Column, Row (e.g. a1), 
+        # that represents all the locations that piece can go legally)
+        pass
 
 
 class Knight(Piece):
@@ -93,6 +131,14 @@ class Knight(Piece):
             return True
 
         return False
+    
+    def get_possible_moves(self, origin, game_board):
+        possible_moves = []
+        # TODO
+        # This method accepts a point of origin and the state of the game board. 
+        # It should return a list of strings (formated in the standard format of Column, Row (e.g. a1), 
+        # that represents all the locations that piece can go legally)
+        pass
 
 
 class Bishop(Piece):
@@ -123,6 +169,14 @@ class Bishop(Piece):
                 return False  # There's a piece in the path
 
         return True
+    
+    def get_possible_moves(self, origin, game_board):
+        possible_moves = []
+        # TODO
+        # This method accepts a point of origin and the state of the game board. 
+        # It should return a list of strings (formated in the standard format of Column, Row (e.g. a1), 
+        # that represents all the locations that piece can go legally)
+        pass
 
 
 class Rook(Piece):
@@ -154,6 +208,14 @@ class Rook(Piece):
                     return False
 
         return True
+
+    def get_possible_moves(self, origin, game_board):
+        possible_moves = []
+        # TODO
+        # This method accepts a point of origin and the state of the game board. 
+        # It should return a list of strings (formated in the standard format of Column, Row (e.g. a1), 
+        # that represents all the locations that piece can go legally)
+        pass
 
 
 class Pawn(Piece):
@@ -196,6 +258,14 @@ class Pawn(Piece):
                 return True
 
         return False
+
+    def get_possible_moves(self, origin, game_board):
+        possible_moves = []
+        # TODO
+        # This method accepts a point of origin and the state of the game board. 
+        # It should return a list of strings (formated in the standard format of Column, Row (e.g. a1), 
+        # that represents all the locations that piece can go legally)
+        pass
 
 
 class Board:
