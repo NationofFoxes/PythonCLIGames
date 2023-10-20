@@ -4,6 +4,19 @@ class Piece:
     def __init__(self, color, id):
         self.color = color
         self.id = id  # Piece ID ('K', 'Q', 'R', 'Kn', 'B', 'P')
+    
+    def get_possible_moves(self, origin, game_board):
+        possible_moves = []
+
+        for target_col in range(8):
+            for target_row in range(8):
+                target = f"{chr(target_col + ord('a'))}{8 - target_row}"
+
+                if self.is_valid_move(origin, target, game_board):
+                    possible_moves.append(target)
+
+        return possible_moves
+
 
     
 class King(Piece):
@@ -29,22 +42,28 @@ class King(Piece):
         return False
 
     def safe_check(self, target, game_board):
-        # TODO:
-        # Implement safety checking logic here
-        # loop through rows and columns
-        # if isinstance(i, Piece) and i.piece_id != self.piece_id
-        #   loop through possible moves
-        #       if possible_move == target
-        #           return False
-        return True  # Modify this logic as needed
-    
-    def get_possible_moves(self, origin, game_board):
-        possible_moves = []
-        # TODO
-        # This method accepts a point of origin and the state of the game board. 
-        # It should return a list of strings (formated in the standard format of Column, Row (e.g. a1), 
-        # that represents all the locations that piece can go legally)
-        pass
+        # Convert coordinates to indices (0-based)
+        target_col, target_row = ord(target[0]) - ord('a'), 8 - int(target[1])
+
+        # Get the color of the piece (either 'W' for White or 'B' for Black)
+        color = self.color
+
+        # Opponent's color
+        opponent_color = 'B' if color == 'W' else 'W'
+
+        # Loop through rows and columns
+        for row in range(8):
+            for col in range(8):
+                piece = game_board.board[row][col]
+
+                # Check if the piece at (row, col) is of the opponent's color
+                if isinstance(piece, Piece) and piece.color == opponent_color:
+                    # Check if the opponent's piece can move to the target
+                    if piece.is_valid_move(f"{chr(col + ord('a'))}{8 - row}", target, game_board):
+                        print("You cannot place your King in a position of danger.")
+                        return False
+
+        return True
 
 
 
@@ -95,14 +114,6 @@ class Queen(Piece):
             return True
 
         return False
-    
-    def get_possible_moves(self, origin, game_board):
-        possible_moves = []
-        # TODO
-        # This method accepts a point of origin and the state of the game board. 
-        # It should return a list of strings (formated in the standard format of Column, Row (e.g. a1), 
-        # that represents all the locations that piece can go legally)
-        pass
 
 
 class Knight(Piece):
@@ -131,14 +142,6 @@ class Knight(Piece):
             return True
 
         return False
-    
-    def get_possible_moves(self, origin, game_board):
-        possible_moves = []
-        # TODO
-        # This method accepts a point of origin and the state of the game board. 
-        # It should return a list of strings (formated in the standard format of Column, Row (e.g. a1), 
-        # that represents all the locations that piece can go legally)
-        pass
 
 
 class Bishop(Piece):
@@ -165,18 +168,11 @@ class Bishop(Piece):
         for i in range(1, col_diff):
             col = min_col + i
             row = min_row + i
-            if isinstance(game_board[row][col], Piece):
+            if isinstance(game_board.board[row][col], Piece):
                 return False  # There's a piece in the path
 
         return True
-    
-    def get_possible_moves(self, origin, game_board):
-        possible_moves = []
-        # TODO
-        # This method accepts a point of origin and the state of the game board. 
-        # It should return a list of strings (formated in the standard format of Column, Row (e.g. a1), 
-        # that represents all the locations that piece can go legally)
-        pass
+
 
 
 class Rook(Piece):
@@ -208,14 +204,6 @@ class Rook(Piece):
                     return False
 
         return True
-
-    def get_possible_moves(self, origin, game_board):
-        possible_moves = []
-        # TODO
-        # This method accepts a point of origin and the state of the game board. 
-        # It should return a list of strings (formated in the standard format of Column, Row (e.g. a1), 
-        # that represents all the locations that piece can go legally)
-        pass
 
 
 class Pawn(Piece):
@@ -259,13 +247,6 @@ class Pawn(Piece):
 
         return False
 
-    def get_possible_moves(self, origin, game_board):
-        possible_moves = []
-        # TODO
-        # This method accepts a point of origin and the state of the game board. 
-        # It should return a list of strings (formated in the standard format of Column, Row (e.g. a1), 
-        # that represents all the locations that piece can go legally)
-        pass
 
 
 class Board:
@@ -355,8 +336,9 @@ class Game:
                 print("Invalid move. Target position is occupied.")
                 return turn
         else:
-            print("No", color, "piece at the specified origin.")
+            print("Invalid move.")
             return turn
+
 
 
     @staticmethod
