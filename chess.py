@@ -5,20 +5,18 @@ class Piece:
         self.color = color
         self.id = id  # Piece ID ('K', 'Q', 'R', 'Kn', 'B', 'P')
     
-    def get_possible_moves(self, origin, game_board):
-        possible_moves = []
+    # def get_possible_moves(self, origin, game_board):
+    #     possible_moves = []
 
-        for target_col in range(8):
-            for target_row in range(8):
-                target = f"{chr(target_col + ord('a'))}{8 - target_row}"
+    #     for target_col in range(8):
+    #         for target_row in range(8):
+    #             target = f"{chr(target_col + ord('a'))}{8 - target_row}"
 
-                if self.is_valid_move(origin, target, game_board):
-                    possible_moves.append(target)
+    #             if self.is_valid_move(origin, target, game_board):
+    #                 possible_moves.append(target)
 
-        return possible_moves
+    #     return possible_moves
 
-
-    
 class King(Piece):
     def __init__(self, color):
         piece_id = color + "K"
@@ -57,13 +55,14 @@ class King(Piece):
                 piece = game_board.board[row][col]
 
                 # Check if the piece at (row, col) is of the opponent's color
-                if isinstance(piece, Piece) and piece.color == opponent_color:
+                if isinstance(piece, Piece) and piece.color == opponent_color and not isinstance(piece, King):
                     # Check if the opponent's piece can move to the target
                     if piece.is_valid_move(f"{chr(col + ord('a'))}{8 - row}", target, game_board):
-                        print("You cannot place your King in a position of danger.")
+                        print("You cannot place your King in a position of danger.", piece.id)
                         return False
 
         return True
+
 
 
 
@@ -294,8 +293,11 @@ class Game:
         self.game_board = Board()
         self.game_board.starting_position()
         self.game_board.print_board()
+        self.possible_moves = self.get_possible_moves('W')
 
     def move_piece(self, move, turn):
+
+
         # Validate and parse the user's input move
         if not self.is_valid_move_syntax(move):
             print("Invalid move syntax. Please use the format YX to YX.")
@@ -312,32 +314,76 @@ class Game:
 
         if turn:
             color = 'W'
+            opposition = 'B'
         else:
             color = 'B'
+            opposition = 'W'
+
+        player_king = self.find_king(color)
+        print("player king", player_king)
+
+        print(self.possible_moves)
+        if player_king in self.possible_moves:
+            player_king_check = True
+        else:
+            player_king_check = False
 
         # Perform the move logic
         piece = self.game_board.board[origin_row][origin_col]
         if isinstance(piece, Piece) and piece.color == color and piece.is_valid_move(origin, target, self.game_board):
             # Check if the target position is occupied by opposing piece
-            if isinstance(self.game_board.board[target_row][target_col], Piece) and piece.color != self.game_board.board[target_row][target_col].color:
+            if isinstance(self.game_board.board[target_row][target_col], Piece) and piece.color != self.game_board.board[target_row][target_col].color and not player_king_check:
                 # target piece is taken, removed from board
                 self.game_board.board[target_row][target_col] = piece
                 self.game_board.board[origin_row][origin_col] = ' '
                 self.game_board.print_board()
+                self.possible_moves = self.get_possible_moves(turn)
+                if self.find_king(opposition) in self.possible_moves:
+                    print("Check!")
                 return not turn
-            elif not isinstance(self.game_board.board[target_row][target_col], Piece):
+            elif not isinstance(self.game_board.board[target_row][target_col], Piece) and not player_king_check:
                 # Move the piece to the target position
                 self.game_board.board[target_row][target_col] = piece
                 self.game_board.board[origin_row][origin_col] = ' '
                 self.game_board.print_board()
+                self.possible_moves = self.get_possible_moves(turn)
+                if self.find_king(opposition) in self.possible_moves:
+                    print("Check!")
                 return not turn
-            else:
-                # players cannot remove their own pieces
-                print("Invalid move. Target position is occupied.")
-                return turn
+            elif self.is_checkmate(turn):
+                print("Checkmate!")
+                exit(0) #Exits game if checkmate
         else:
             print("Invalid move.")
             return turn
+
+    def is_checkmate(self, color):
+        king_position = self.find_king(color)
+
+        # If the king is not in check, it's not checkmate
+        if king_position not in self.possible_moves:
+            return False
+
+        # Iterate over all pieces and their potential moves to see if any can break the check
+        for move_from, possible_moves in self.possible_moves.items():
+            if move_from == king_position:
+                for target in possible_moves:
+                    temp_board = self.copy_board()
+                    temp_board.move_piece(f"{move_from} to {target}", color)
+                    temp_possible_moves = temp_board.get_possible_moves(color)
+
+                    # If the king is not under threat in the next move, it's not checkmate
+                    if king_position not in temp_possible_moves:
+                        return False
+
+        return True
+
+
+    def copy_board(self):
+        # Create a copy of the current board state
+        copied_board = Board()
+        copied_board.board = [row[:] for row in self.game_board.board]
+        return copied_board
 
 
 
@@ -359,6 +405,49 @@ class Game:
         # Write a method that accepts one coordinate (e.g., 'a1') and returns the Piece.piece_id on that coordinate on the board.
         # This is just for testing, and could potentially be used for check/checkmate checks
         pass
+
+    def get_possible_moves(self, color):
+        all_possible_moves = {}
+
+        for row in range(8):
+            for col in range(8):
+                piece = self.game_board.board[row][col]
+
+                if isinstance(piece, Piece) and piece.color == color and not isinstance(piece, King):
+                    origin = f"{chr(col + ord('a'))}{8 - row}"
+                    moves = self.calculate_possible_moves(origin, self.game_board)
+                    if moves:
+                        all_possible_moves[origin] = moves
+
+        return all_possible_moves
+
+    def calculate_possible_moves(self, origin, game_board):
+        possible_moves_list = []
+
+        # Convert coordinates to indices (0-based)
+        origin_col, origin_row = ord(origin[0]) - ord('a'), 8 - int(origin[1])
+
+        piece_at_origin = game_board.board[origin_row][origin_col]
+
+        for target_col in range(8):
+            for target_row in range(8):
+                target = f"{chr(target_col + ord('a'))}{8 - target_row}"
+
+                if isinstance(piece_at_origin, Piece) and piece_at_origin.is_valid_move(origin, target, game_board):
+                    possible_moves_list.append(target)
+
+        return possible_moves_list
+
+    
+    def find_king(self, color):
+        for row in range(8):
+            for col in range(8):
+                piece = self.game_board.board[row][col]
+                if isinstance(piece, King) and piece.color == color:
+                    return f"{chr(col + ord('a'))}{8 - row}"
+
+        # If the King is not found, return None or handle it according to your needs
+        return None
     
     def run(self):
         white_turn = True
