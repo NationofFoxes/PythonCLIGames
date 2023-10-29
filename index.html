@@ -1,0 +1,198 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <link rel="icon" href="/favicon.ico">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CLI Arcade</title>
+    <style>
+        body {
+            background-color: #414141;
+            font-family: "Courier New", monospace;
+        }
+        
+        #console {
+            background-color: black;
+            color: white;
+            display: flex;
+            flex-direction: column;
+            justify-content: flex-start;
+            align-items: center;
+            width: 80%;
+            border: 1px solid #2b2b2b;
+            border-radius: 5px;
+            box-shadow: 10px 10px 5px #2b2b2b;
+        }
+        
+        #output {
+            background-color: black;
+            color: white;
+            width: 100%;
+            margin: 0 auto;
+            overflow-y: auto;
+            height: 300px;
+            display: flex;
+            border: none;
+            border-top-left-radius: inherit;
+            border-top-right-radius: inherit;
+            outline: none;
+            flex-direction: column;
+            justify-content: flex-end;
+            align-items: flex-start;
+        }
+        
+        #inputWrapper {
+            width: 100%;
+            border: none;
+            outline: none;
+            background-color: black;
+            margin: 0 auto;
+            color: white;
+            height: fit-content;
+            caret-color: white;
+            display: flex;
+            flex-direction: row;
+            justify-content: flex-start;
+            align-items: center;
+            border-bottom-left-radius: inherit;
+            border-bottom-right-radius: inherit;
+        }
+        
+        #inputPrefix {
+            font-family: inherit;
+            color: inherit;
+            background-color: inherit;
+            outline: inherit;
+            border: inherit;
+            width: fit-content;
+            letter-spacing: -1px;
+            border-bottom-left-radius: inherit;
+        }
+        
+        #input {
+            font-family: inherit;
+            font-size: inherit;
+            color: inherit;
+            background-color: inherit;
+            outline: inherit;
+            border: inherit;
+            flex: 1;
+            border-bottom-right-radius: inherit;
+        }
+    </style>
+</head>
+
+<body>
+    <div id="console">
+        <div id="output"></div>
+        <div id="inputWrapper">
+            <div id="inputPrefix">>&nbsp;</div>
+            <input id="input" type="text" autofocus>
+        </div>
+    </div>
+
+    <script>
+        // properties
+
+        const isLocal = true // IMPORTANT
+        const consoleDiv = document.getElementById("console")
+        const outputDiv = document.getElementById("output")
+        const inputField = document.getElementById("input")
+        var websocketEndpoint = ""
+        var awaitedInput = ""
+        var gameId = ""
+        var userId = ""
+
+        if (isLocal) {
+            websocketEndpoint = "ws://localhost:8000/"
+        } else {
+            websocketEndpoint = "wss://s42zscuc6h.execute-api.us-east-1.amazonaws.com/production/"
+        }
+
+        // websocket
+
+        const socket = new WebSocket(websocketEndpoint)
+
+        socket.onopen = (event) => {
+            console.log("WebSocket connection opened")
+            printToOutput("Connected to server!")
+            awaitedInput = "gameId"
+            printToOutput("Input Game ID:")
+        }
+
+        //socket.onclose = (event) => { // $disconnect
+        //    console.log("WebSocket closed with code: " + event.code + ", reason: " + event.reason)
+        //    if (isLocal) {
+        //        socket.send(JSON.stringify({
+        //            action: "disconnect"
+        //        }));
+        //    }
+        //}
+
+        //socket.onmessage = (event) => { // 
+        //    const message = JSON.parse(event.data);
+        //    console.log("Received data from the backend:"", message);
+        //    const commandOutput = document.createElement("div")
+        //    commandOutput.textContent = `> ${message}`
+        //    outputDiv.appendChild(commandOutput)
+        //}
+
+        //function sendMoveData(move) {
+        //    socket.send(JSON.stringify({
+        //        action: "turn",
+        //        data: data,
+        //    }))
+        //}
+
+        function connect() {
+            socket.send(JSON.stringify({
+                action: "connect",
+                gameId: gameId,
+                userId: userId,
+            }))
+        }
+
+        // input/output functionality
+
+        // force cursor focus on input
+        inputField.addEventListener("blur", () => {
+            input.focus()
+        })
+
+        // handle keyboard input
+        inputField.addEventListener("keydown", function(event) {
+            if (event.key === "Enter") {
+                switch (awaitedInput) {
+                    case "gameId": // get gameId
+                        gameId = getInput()
+                        awaitedInput = "userId"
+                        printToOutput("Input User ID:")
+                        break
+                    case "userId": // get userId and connect to game
+                        userId = getInput()
+                        connect()
+                        break
+                }
+            }
+        })
+
+        function printToOutput(text, isUserInput = false) {
+            const commandOutput = document.createElement("div")
+            if (isUserInput) {
+                text = "> " + text
+            }
+            commandOutput.textContent = text
+            outputDiv.appendChild(commandOutput)
+        }
+
+        function getInput() {
+            value = inputField.value
+            inputField.value = ""
+            printToOutput(value, isUserInput = true)
+            return value
+        }
+    </script>
+</body>
+
+</html>
