@@ -103,6 +103,9 @@
         var awaitedInput = ""
         var gameId = ""
         var userId = ""
+        var disableInput = true
+        let message = {}
+        let display = ""
 
         if (isLocal) {
             websocketEndpoint = "ws://localhost:8000/"
@@ -116,40 +119,125 @@
 
         socket.onopen = (event) => {
             console.log("WebSocket connection opened")
-            printToOutput("Connected to server!")
-            awaitedInput = "gameId"
-            printToOutput("Input Game ID:")
+            awaitedInput = "start"
+            printToOutput("Connected to server!\nPress Enter to Get Started :")
         }
 
         //socket.onclose = (event) => { // $disconnect
         //    console.log("WebSocket closed with code: " + event.code + ", reason: " + event.reason)
         //    if (isLocal) {
-        //        socket.send(JSON.stringify({
-        //            action: "disconnect"
+        //          socket.send(JSON.stringify({
+        //			  "action": "backend",
+        //            "task": "disconnect"
         //        }));
         //    }
         //}
 
-        //socket.onmessage = (event) => { // 
-        //    const message = JSON.parse(event.data);
-        //    console.log("Received data from the backend:"", message);
-        //    const commandOutput = document.createElement("div")
-        //    commandOutput.textContent = `> ${message}`
-        //    outputDiv.appendChild(commandOutput)
-        //}
+        socket.onmessage = (event) => {
+            message = JSON.parse(event.data)
+            switch (message["task"]) {
+
+                case "get_game_name":
+                    awaitedInput = "gameName"
+                    let availableGames = message["available_games"]
+                    toPrint = ""
+                    for (let i = 1; i <= availableGames.length; i++) {
+                        toPrint += `${i}.\t${availableGames[i-1]}`
+                        if (i != availableGames.length) {
+                            toPrint += "\n"
+                        }
+                    }
+                    printToOutput(`NEW GAME\nWhat game do you want to play?\nPick a number from the available games :\n${toPrint}`)
+                    disableInput = false
+                    break
+
+                case "get_num_players":
+                    awaitedInput = "numPlayers"
+                    let availableOptions = message["available_options"]
+                    toPrint = ""
+                    for (let i = 1; i <= availableOptions.length; i++) {
+                        toPrint += availableOptions[i - 1]
+                        if (i != availableOptions.length) {
+                            toPrint += ", "
+                        }
+                    }
+                    printToOutput(`How many players?\nPick a number from the available options :\n${toPrint}`)
+                    disableInput = false
+                    break
+
+                case "await_players":
+                    printToOutput("Waiting for other players to join...")
+                    break
+
+                case "update_display_wait":
+                    display = message['display']
+                    printToOutput(`${display}\nWaiting for next player's move...`)
+                    break
+
+                case "update_display_your_turn":
+                    awaitedInput = "move"
+                    display = message['display']
+                    printToOutput(`${display}\nYOUR MOVE\nInput your move :`)
+                    disableInput = false
+                    break
+
+                case "retry_move":
+                    awaitedInput = "move"
+                    printToOutput(`${display}\n**INVALID MOVE**\nInput your move again :`)
+                    disableInput = false
+                    break
+
+            }
+            //console.log("Received data from the backend:", message);
+            //const commandOutput = document.createElement("div")
+            //commandOutput.textContent = `> ${message}`
+            //outputDiv.appendChild(commandOutput)
+        }
 
         //function sendMoveData(move) {
         //    socket.send(JSON.stringify({
-        //        action: "turn",
-        //        data: data,
+        //		  "action": "backend",
+        //        "task": "turn",
+        //        "data": data,
         //    }))
         //}
 
         function connect() {
             socket.send(JSON.stringify({
-                action: "connect",
-                gameId: gameId,
-                userId: userId,
+                "action": "backend",
+                "task": "connect",
+                "gameId": gameId,
+                "userId": userId,
+            }))
+        }
+
+        function setGameName(gameName) {
+            socket.send(JSON.stringify({
+                "action": "backend",
+                "task": "set_game_name",
+                "gameId": gameId,
+                "userId": userId,
+                "gameName": gameName,
+            }))
+        }
+
+        function setNumPlayers(numPlayers) {
+            socket.send(JSON.stringify({
+                "action": "backend",
+                "task": "set_num_players",
+                "gameId": gameId,
+                "userId": userId,
+                "numPlayers": numPlayers,
+            }))
+        }
+
+        function move(myMove) {
+            socket.send(JSON.stringify({
+                "action": "backend",
+                "task": "move",
+                "gameId": gameId,
+                "userId": userId,
+                "move": myMove,
             }))
         }
 
@@ -160,34 +248,72 @@
             input.focus()
         })
 
-        // handle keyboard input
+        // handle keyboard input on Enter
         inputField.addEventListener("keydown", function(event) {
-            if (event.key === "Enter") {
+            if (event.key === "Enter" && !disableInput) {
                 switch (awaitedInput) {
+
                     case "gameId": // get gameId
                         gameId = getInput()
                         awaitedInput = "userId"
-                        printToOutput("Input User ID:")
+                        disableInput = false // get input again after this
+                        printToOutput("Input User ID :")
                         break
-                    case "userId": // get userId and connect to game
+
+                    case "userId": // get userId and connect
                         userId = getInput()
                         connect()
                         break
+
+                    case "gameName": // get gameName and send
+                        const gameNumber = getInput()
+                        setGameName(message["available_games"][gameNumber - 1])
+                        break
+
+                    case "numPlayers": // get numPlayers and send
+                        const numPlayers = getInput()
+                        setNumPlayers(numPlayers)
+                        break
+
+                    case "move":
+                        const myMove = getInput()
+                        move(myMove)
+                        break
+
                 }
+            } else if (event.key === "Enter" && awaitedInput == "start") {
+                awaitedInput = "gameId"
+                disableInput = false
+                printToOutput("Input Game ID :")
+            }
+        })
+
+        // handle keyboard input at all
+        inputField.addEventListener("input", function(event) {
+            if (disableInput) {
+                inputField.value = ""
             }
         })
 
         function printToOutput(text, isUserInput = false) {
-            const commandOutput = document.createElement("div")
             if (isUserInput) {
-                text = "> " + text
+                const commandOutput = document.createElement("div")
+                commandOutput.innerHTML = "> " + text
+                commandOutput.style.whiteSpace = "break-spaces"
+                outputDiv.appendChild(commandOutput)
+                const br = document.createElement("br")
+                outputDiv.appendChild(br)
+            } else {
+                const commandOutput = document.createElement("div")
+                commandOutput.innerHTML = text
+                commandOutput.style.whiteSpace = "break-spaces"
+                outputDiv.appendChild(commandOutput)
             }
-            commandOutput.textContent = text
-            outputDiv.appendChild(commandOutput)
         }
 
         function getInput() {
-            value = inputField.value
+            disableInput = true
+            let value = inputField.value
             inputField.value = ""
             printToOutput(value, isUserInput = true)
             return value

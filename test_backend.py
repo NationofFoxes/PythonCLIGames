@@ -1,13 +1,30 @@
 import json
-import test_database, connect
+import local_db_utils, backend
 
 
 # test data
-test_event_1 = {
+
+test_event_1_1 = {
   "requestContext": {
     "connectionId": "connection1"
   },
   "body": "{\"action\":\"connect\",\"gameId\":\"game1\",\"userId\":\"user1\"}",
+  "isLocal": True,
+}
+
+test_event_1_2 = {
+  "requestContext": {
+    "connectionId": "connection1"
+  },
+  "body": "{\"action\":\"set_game_name\",\"gameId\":\"game1\",\"userId\":\"user1\"}",
+  "isLocal": True,
+}
+
+test_event_1_2 = {
+  "requestContext": {
+    "connectionId": "connection1"
+  },
+  "body": "{\"action\":\"set_game_name\",\"gameId\":\"game1\",\"userId\":\"user1\"}",
   "isLocal": True,
 }
 
@@ -27,7 +44,6 @@ test_event_3 = {
   "isLocal": True,
 }
 
-
 # begin testing
 
 # prep
@@ -40,7 +56,7 @@ connection_id_2 = test_event_2["requestContext"]["connectionId"]
 game_id_3 = json.loads(test_event_3["body"])["gameId"]
 user_id_3 = json.loads(test_event_3["body"])["userId"]
 connection_id_3 = test_event_3["requestContext"]["connectionId"]
-db = test_database.Database()
+db = local_db_utils.Database()
 db.delete(game_id_1)
 db.delete(game_id_2)
 db.delete(game_id_3)
@@ -54,7 +70,7 @@ assert not data
 # test 1
 
 # execute
-connect.lambda_handler(test_event_1, None)
+backend.lambda_handler(test_event_1, None)
 
 # check results
 data = db.get_item(TableName="cli_arcade_games", Key={"game_id": {"S": game_id_1}})
@@ -68,7 +84,7 @@ print("Test 1 PASSED")
 # test 2
 
 # execute
-connect.lambda_handler(test_event_2, None)
+backend.lambda_handler(test_event_2, None)
 
 # check results
 data = db.get_item(TableName="cli_arcade_games", Key={"game_id": {"S": game_id_2}})
@@ -82,7 +98,7 @@ print("Test 2 PASSED")
 # test 3
 
 # execute
-connect.lambda_handler(test_event_3, None)
+backend.lambda_handler(test_event_3, None)
 
 # check results
 data = db.get_item(TableName="cli_arcade_games", Key={"game_id": {"S": game_id_3}})

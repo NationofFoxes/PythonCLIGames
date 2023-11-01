@@ -1,88 +1,101 @@
-import random
+import json
 
 
 class Game:
+	# required parameters
+
+	# player number options
+	available_player_num = [2]  # REQUIRED FOR ALL GAMES
+
+	# parameters unique to this game
+
 	n = 9
 	cells = {
-		'A': ' ',
-		'B': ' ',
-		'C': ' ',
-		'D': ' ',
-		'E': ' ',
-		'F': ' ',
-		'G': ' ',
-		'H': ' ',
-		'I': ' ',
+		"A": " ",
+		"B": " ",
+		"C": " ",
+		"D": " ",
+		"E": " ",
+		"F": " ",
+		"G": " ",
+		"H": " ",
+		"I": " ",
 	}
-	lineups = ['ABC', 'DEF', 'GHI', 'ADG', 'BEH', 'CFI', 'AEI', 'CEG']
-	players = 'XO'
-	player = True
-	num_players = 2
-	move_num = 1
-	npc_moves = ''
+	player_options = "XO"
 
-	def __init__(self):
+	# required methods
 
+	def __init__(self, state, users):  # REQUIRED FOR ALL GAMES
+		if state["is_started"] == "true":  # REQUIRED FOR ALL GAMES
+			self.state_to_obj(state)  # REQUIRED FOR ALL GAMES
 
-	@property
-	def player_symbol(self):
-		return self.players[int(self.player)]
+	def initialize(self, users):  # REQUIRED FOR ALL GAMES
+		# setup game object
+		self.players = []
+		for i, user in enumerate(users):
+			symbol = self.player_options[i]
+			self.players += [{"symbol": symbol, "id": user.user_id}]
 
-	def __str__(self):
-		#        ---------     ---------
-		lines = '\n\nSPOT NAMES   GAME BOARD\n\n'
-		left = ''
-		right = '    '
+		self.current_player = self.players[0]
+
+		# get display and state from object
+		display = self.obj_to_display()  # REQUIRED FOR ALL GAMES
+		state = self.obj_to_state()  # REQUIRED FOR ALL GAMES
+		return display, state  # REQUIRED FOR ALL GAMES
+
+	def state_to_obj(self, state):  # REQUIRED FOR ALL GAMES
+		self.cells = state["cells"]
+		self.players = state["players"]
+		self.current_player = state["current_player"]
+		return
+
+	def is_valid_move(self, my_move):  # REQUIRED FOR ALL GAMES
+		spot = my_move.upper()
+		is_valid = spot in self.cells.keys() and self.cells[spot] == " "
+		return is_valid  # REQUIRED FOR ALL GAMES
+
+	def move(self, my_move):  # REQUIRED FOR ALL GAMES
+		# make move
+		spot = my_move.upper()
+		self.cells[spot] = self.current_player["symbol"]
+
+		# get display and state from object
+		new_display = self.obj_to_display()  # REQUIRED FOR ALL GAMES
+		new_state = self.obj_to_state()  # REQUIRED FOR ALL GAMES
+		return new_display, new_state  # REQUIRED FOR ALL GAMES
+
+	def obj_to_display(self):  # REQUIRED FOR ALL GAMES
+		display = "\n\nSPOT NAMES   GAME BOARD\n\n"
+		left = ""
+		right = "    "
 		for i, spot in enumerate(self.cells.keys()):
-			left += spot + ' '
-			right += self.cells[spot] + ' '
+			left += spot + " "
+			right += self.cells[spot] + " "
 			if (i + 1) % 3:
-				left += '| '
-				right += '| '
-			elif i != n-1:
-				lines += left + right
-				lines += '\n---------     ---------\n'
-				left = ''
-				right = '    '
+				left += "| "
+				right += "| "
+			elif i != self.n-1:
+				display += left + right
+				display += "\n---------     ---------\n"
+				left = ""
+				right = "    "
 			else:
-				lines += left + right + '\n\n'
-		return lines
+				display += left + right + "\n\n"
+		return display  # REQUIRED FOR ALL GAMES
 
-	def is_valid(self, spot):
-		return spot in self.cells.keys() and self.cells[spot] == ' '
+	def obj_to_state(self):  # REQUIRED FOR ALL GAMES
+		for i, player in enumerate(self.players):
+			if player["id"] == self.current_player["id"]:
+				next_player_index = (i + 1) % len(self.players)
+		next_player = self.players[next_player_index]
 
-	@property
-	def is_game_over(self):
-		for lineup in self.lineups:
-			if (
-				self.cells[lineup[0]] != ' ' and
-				self.cells[lineup[0]] == self.cells[lineup[1]] and
-				self.cells[lineup[1]] == self.cells[lineup[2]]
-			):
-				return True
-		return False
+		state = {
+			"cells": self.cells,
+			"players": self.players,
+			"current_player": next_player,
+			"is_started": "true",
+		}
+		return state  # REQUIRED FOR ALL GAMES
 
-	def make_move(self, spot):
-		self.cells[spot] = self.player_symbol
+	# methods unique to this game
 
-	def switch_players(self):
-		self.player = not self.player
-
-	def play(self):
-
-		while not self.is_game_over:
-			to_print += self
-			if self.num_players == 2 or int(self.player) == players_order:
-				spot = input(f'PLAYER {self.player_symbol}\'s TURN. ENTER SPOT A-I: ').upper()
-			else:
-				spot = self.npc_move()
-			if self.is_valid(spot):
-				self.make_move(spot)
-				self.switch_players()
-				self.move_num += 1
-			else:
-				to_print += '\n\nINVALID MOVE!')
-
-		self.switch_players()
-		print(self, end='')
-		print(f'GAME OVER\n{self.player_symbol} WINS!')
