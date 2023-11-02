@@ -1,6 +1,0 @@
-{
-	"python.analysis.extraPaths": [
-		"VideoChatPlatform",
-		"./aws_lambda"
-	]
-}
