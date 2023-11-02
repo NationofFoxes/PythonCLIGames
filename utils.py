@@ -16,7 +16,7 @@ class Websocket:
         self.event, self.is_local, self.connection_id = event, is_local, connection_id
 
     # async if offline
-    async def send(self, message, connection_id=None):
+    def send(self, message, connection_id=None):
         # send over websocket connection
 
         if connection_id:
@@ -27,7 +27,8 @@ class Websocket:
         if self.is_local:
             common = importlib.import_module('common')
             websocket = common.websocket_list[to]
-            await websocket.send_json(message)
+            asyncio = importlib.import_module('asyncio')
+            asyncio.create_task(websocket.send_json(message))
             return
         else:
             boto3 = importlib.import_module('boto3')
@@ -148,6 +149,18 @@ class GameProps:
     def make_move(self):
         self.display, self.state = self.game_logic.move(self.move)
         return
+
+    def save_to_db(self):
+        self.db.put_item(  # this will create if doesnt exist, or overwrite if exists
+            TableName="cli_arcade_games",
+            Item=self.to_dict()
+        )
+
+    def send_updated_displays(self):
+        # send updated display to player who made move
+        self.ws.send({"task": "update_display_wait", "display": self.display})
+        # send updated display to next player
+        self.ws.send({"task": "update_display_your_turn", "display": self.display}, connection_id=self.next_connection_id)
 
     def to_dict(self):
         # get dict of game

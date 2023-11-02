@@ -24,7 +24,6 @@ async def websocket_endpoint(websocket: WebSocket):
         # get message from frontend
         message = await websocket.receive_text()
 
-        loop = asyncio.get_event_loop()
         # create event for lambda_handler
         event = {
             "requestContext": {
@@ -32,7 +31,6 @@ async def websocket_endpoint(websocket: WebSocket):
             },
             "body": message,
             "isLocal": "true",
-            "loop": loop,
         }
 
         # execute lambda
