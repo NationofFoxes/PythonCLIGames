@@ -177,11 +177,6 @@ class GameProps:
             "num_players": {"S": str(self.num_players)},
         }
 
-    #def add_prop(self, prop_name):
-    #    value = json.loads(self.event["body"])[prop_name]
-    #    snake_name = camel_to_snake(prop_name)
-    #    setattr(self, snake_name, value)
-
 
 def camel_to_snake(text):
     snake_case = re.sub(r'([a-z])([A-Z])', r'\1_\2', text)
