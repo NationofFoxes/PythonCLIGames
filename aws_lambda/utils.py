@@ -25,7 +25,7 @@ class Websocket:
             to = self.connection_id
 
         if self.is_local:
-            common = importlib.import_module('common')
+            common = get_module_from_root_directory("local", "common")
             websocket = common.websocket_list[to]
             asyncio = importlib.import_module('asyncio')
             asyncio.create_task(websocket.send_json(message))
@@ -65,7 +65,7 @@ class GameProps:
         
         # get database connection
         if self.is_local:  # local database
-            local_db_utils = importlib.import_module('local_db_utils')
+            local_db_utils = get_module_from_root_directory("local", "local_db_utils")
             self.db = local_db_utils.Database()
         else:  # remote database
             boto3 = importlib.import_module('boto3')
@@ -123,7 +123,7 @@ class GameProps:
         return
 
     def get_game_logic(self):
-        module_name = self.game_name + ".game"
+        module_name = "games." + self.game_name
         game_module = importlib.import_module(module_name)
         self.game_logic = game_module.Game(self.state, self.users)
 
@@ -181,3 +181,11 @@ class GameProps:
 def camel_to_snake(text):
     snake_case = re.sub(r'([a-z])([A-Z])', r'\1_\2', text)
     return snake_case.lower()
+
+
+def get_module_from_root_directory(module_folder_path, module_name):
+    sys = importlib.import_module("sys")
+    os = importlib.import_module("os")
+    sys.path.append(os.path.abspath(f"../{module_folder_path}"))
+    module_name = importlib.import_module(module_name)
+    return module_name

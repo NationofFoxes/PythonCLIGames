@@ -47,7 +47,7 @@ def getWords(x):
     global wordsList
     allWords = []
     try:
-        word = open('words.txt', 'r')
+        word = open('resources\words.txt', 'r')
     except FileNotFoundError:
         print("The 'words.txt' file was not found.")
 

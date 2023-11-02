@@ -2,7 +2,10 @@ import secrets, asyncio
 from fastapi import FastAPI, WebSocket
 import uvicorn
 from common import websocket_list
-import lambda_function
+import sys
+import os
+sys.path.append(os.path.abspath('../aws_lambda'))
+from lambda_function import lambda_handler
 
 
 app = FastAPI()
@@ -34,7 +37,7 @@ async def websocket_endpoint(websocket: WebSocket):
         }
 
         # execute lambda
-        lambda_function.lambda_handler(event, None)  # send
+        lambda_handler(event, None)  # send
     
     return
 
