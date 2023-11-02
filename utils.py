@@ -16,7 +16,7 @@ class Websocket:
         self.event, self.is_local, self.connection_id = event, is_local, connection_id
 
     # async if offline
-    def send(self, message, connection_id=None):
+    async def send(self, message, connection_id=None):
         # send over websocket connection
 
         if connection_id:
@@ -27,8 +27,7 @@ class Websocket:
         if self.is_local:
             common = importlib.import_module('common')
             websocket = common.websocket_list[to]
-            # await if offline
-            websocket.send_json(message)
+            await websocket.send_json(message)
             return
         else:
             boto3 = importlib.import_module('boto3')

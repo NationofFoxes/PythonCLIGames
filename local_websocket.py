@@ -1,7 +1,8 @@
+import secrets, asyncio
 from fastapi import FastAPI, WebSocket
-import uvicorn, secrets
+import uvicorn
 from common import websocket_list
-import backend_local
+import lambda_function
 
 
 app = FastAPI()
@@ -23,6 +24,7 @@ async def websocket_endpoint(websocket: WebSocket):
         # get message from frontend
         message = await websocket.receive_text()
 
+        loop = asyncio.get_event_loop()
         # create event for lambda_handler
         event = {
             "requestContext": {
@@ -30,14 +32,15 @@ async def websocket_endpoint(websocket: WebSocket):
             },
             "body": message,
             "isLocal": "true",
+            "loop": loop,
         }
 
         # execute lambda
-        await backend_local.lambda_handler(event, None)  # send
+        lambda_function.lambda_handler(event, None)  # send
     
     return
 
 
 if __name__ == "__main__":
     import uvicorn
-    uvicorn.run(app, host="localhost", port=8000)
+    asyncio.run(uvicorn.run(app, host="localhost", port=8000))
