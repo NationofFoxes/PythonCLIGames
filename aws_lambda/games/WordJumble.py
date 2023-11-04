@@ -73,8 +73,8 @@ def printBoard(boxes):
 
 
 def nineLettersList():
-    word = open('words.txt', 'r')
-    list = open('list.txt', 'w')
+    word = open('resources\words.txt', 'r')
+    list = open('resources\list.txt', 'w')
     for line in word:
         if len(line) == 10:
             print(line)
@@ -95,7 +95,7 @@ def split(s):
 
 
 def countlines():
-    list = open('list.txt', 'r')
+    list = open('resources\list.txt', 'r')
     count = 0
     for line in list:
         line.strip('\n')
@@ -103,7 +103,7 @@ def countlines():
     return count
 
 def word():
-    x = open('list.txt', 'r')
+    x = open('resources\list.txt', 'r')
     y = random_line(x)
     x.close()
     return y
@@ -142,7 +142,7 @@ def check1(shufword, attempt):
 
 
 def check2(attempt):
-    x = open('words.txt', 'r')
+    x = open('resources\words.txt', 'r')
     for line in x:
         word = line.strip()
         if word == attempt:
@@ -153,7 +153,7 @@ def check2(attempt):
 
 def find_anagram(word):
     anagrams = ""
-    x = open('words.txt','r')
+    x = open('resources\words.txt','r')
     y = sorted(word)
     for line in x:
         i = line.strip()
@@ -165,7 +165,7 @@ def find_anagram(word):
 
 
 def possible_solution(shufword):
-    t = open('words.txt','r')
+    t = open('resources\words.txt','r')
     pos = []
     count = 0
     for word in t:

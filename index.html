@@ -1,0 +1,324 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <link rel="icon" href="/favicon.ico">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CLI Arcade</title>
+    <style>
+        body {
+            background-color: #414141;
+            font-family: "Courier New", monospace;
+        }
+        
+        #console {
+            background-color: black;
+            color: white;
+            display: flex;
+            flex-direction: column;
+            justify-content: flex-start;
+            align-items: center;
+            width: 80%;
+            border: 1px solid #2b2b2b;
+            border-radius: 5px;
+            box-shadow: 10px 10px 5px #2b2b2b;
+        }
+        
+        #output {
+            background-color: black;
+            color: white;
+            width: 100%;
+            margin: 0 auto;
+            overflow-y: auto;
+            height: 300px;
+            display: flex;
+            border: none;
+            border-top-left-radius: inherit;
+            border-top-right-radius: inherit;
+            outline: none;
+            flex-direction: column;
+            justify-content: flex-end;
+            align-items: flex-start;
+        }
+        
+        #inputWrapper {
+            width: 100%;
+            border: none;
+            outline: none;
+            background-color: black;
+            margin: 0 auto;
+            color: white;
+            height: fit-content;
+            caret-color: white;
+            display: flex;
+            flex-direction: row;
+            justify-content: flex-start;
+            align-items: center;
+            border-bottom-left-radius: inherit;
+            border-bottom-right-radius: inherit;
+        }
+        
+        #inputPrefix {
+            font-family: inherit;
+            color: inherit;
+            background-color: inherit;
+            outline: inherit;
+            border: inherit;
+            width: fit-content;
+            letter-spacing: -1px;
+            border-bottom-left-radius: inherit;
+        }
+        
+        #input {
+            font-family: inherit;
+            font-size: inherit;
+            color: inherit;
+            background-color: inherit;
+            outline: inherit;
+            border: inherit;
+            flex: 1;
+            border-bottom-right-radius: inherit;
+        }
+    </style>
+</head>
+
+<body>
+    <div id="console">
+        <div id="output"></div>
+        <div id="inputWrapper">
+            <div id="inputPrefix">>&nbsp;</div>
+            <input id="input" type="text" autofocus>
+        </div>
+    </div>
+
+    <script>
+        // properties
+
+        const isLocal = false // IMPORTANT
+        const consoleDiv = document.getElementById("console")
+        const outputDiv = document.getElementById("output")
+        const inputField = document.getElementById("input")
+        var websocketEndpoint = ""
+        var awaitedInput = ""
+        var gameId = ""
+        var userId = ""
+        var disableInput = true
+        let message = {}
+        let display = ""
+
+        if (isLocal) {
+            websocketEndpoint = "ws://localhost:8000/"
+        } else {
+            websocketEndpoint = "wss://s42zscuc6h.execute-api.us-east-1.amazonaws.com/production/"
+        }
+
+        // websocket
+
+        const socket = new WebSocket(websocketEndpoint)
+
+        socket.onopen = (event) => {
+            console.log("WebSocket connection opened")
+            awaitedInput = "start"
+            printToOutput("Connected to server!\nPress Enter to Get Started :")
+        }
+
+        //socket.onclose = (event) => { // $disconnect
+        //    console.log("WebSocket closed with code: " + event.code + ", reason: " + event.reason)
+        //    if (isLocal) {
+        //          socket.send(JSON.stringify({
+        //			  "action": "backend",
+        //            "task": "disconnect"
+        //        }));
+        //    }
+        //}
+
+        socket.onmessage = (event) => {
+            message = JSON.parse(event.data)
+            switch (message["task"]) {
+
+                case "get_game_name":
+                    awaitedInput = "gameName"
+                    let availableGames = message["available_games"]
+                    toPrint = ""
+                    for (let i = 1; i <= availableGames.length; i++) {
+                        toPrint += `${i}.\t${availableGames[i-1]}`
+                        if (i != availableGames.length) {
+                            toPrint += "\n"
+                        }
+                    }
+                    printToOutput(`NEW GAME\nWhat game do you want to play?\nPick a number from the available games :\n${toPrint}`)
+                    disableInput = false
+                    break
+
+                case "get_num_players":
+                    awaitedInput = "numPlayers"
+                    let availableOptions = message["available_options"]
+                    toPrint = ""
+                    for (let i = 1; i <= availableOptions.length; i++) {
+                        toPrint += availableOptions[i - 1]
+                        if (i != availableOptions.length) {
+                            toPrint += ", "
+                        }
+                    }
+                    printToOutput(`How many players?\nPick a number from the available options :\n${toPrint}`)
+                    disableInput = false
+                    break
+
+                case "await_players":
+                    printToOutput("Waiting for other players to join...")
+                    break
+
+                case "update_display_wait":
+                    display = message['display']
+                    printToOutput(`${display}\nWaiting for next player's move...`)
+                    break
+
+                case "update_display_your_turn":
+                    awaitedInput = "move"
+                    display = message['display']
+                    printToOutput(`${display}\nYOUR MOVE\nInput your move :`)
+                    disableInput = false
+                    break
+
+                case "retry_move":
+                    awaitedInput = "move"
+                    printToOutput(`${display}\n**INVALID MOVE**\nInput your move again :`)
+                    disableInput = false
+                    break
+
+            }
+            //console.log("Received data from the backend:", message);
+            //const commandOutput = document.createElement("div")
+            //commandOutput.textContent = `> ${message}`
+            //outputDiv.appendChild(commandOutput)
+        }
+
+        //function sendMoveData(move) {
+        //    socket.send(JSON.stringify({
+        //		  "action": "backend",
+        //        "task": "turn",
+        //        "data": data,
+        //    }))
+        //}
+
+        function connect() {
+            socket.send(JSON.stringify({
+                "action": "backend",
+                "task": "connect",
+                "gameId": gameId,
+                "userId": userId,
+            }))
+        }
+
+        function setGameName(gameName) {
+            socket.send(JSON.stringify({
+                "action": "backend",
+                "task": "set_game_name",
+                "gameId": gameId,
+                "userId": userId,
+                "gameName": gameName,
+            }))
+        }
+
+        function setNumPlayers(numPlayers) {
+            socket.send(JSON.stringify({
+                "action": "backend",
+                "task": "set_num_players",
+                "gameId": gameId,
+                "userId": userId,
+                "numPlayers": numPlayers,
+            }))
+        }
+
+        function move(myMove) {
+            socket.send(JSON.stringify({
+                "action": "backend",
+                "task": "move",
+                "gameId": gameId,
+                "userId": userId,
+                "move": myMove,
+            }))
+        }
+
+        // input/output functionality
+
+        // force cursor focus on input
+        inputField.addEventListener("blur", () => {
+            input.focus()
+        })
+
+        // handle keyboard input on Enter
+        inputField.addEventListener("keydown", function(event) {
+            if (event.key === "Enter" && !disableInput) {
+                switch (awaitedInput) {
+
+                    case "gameId": // get gameId
+                        gameId = getInput()
+                        awaitedInput = "userId"
+                        disableInput = false // get input again after this
+                        printToOutput("Input User ID :")
+                        break
+
+                    case "userId": // get userId and connect
+                        userId = getInput()
+                        connect()
+                        break
+
+                    case "gameName": // get gameName and send
+                        const gameNumber = getInput()
+                        setGameName(message["available_games"][gameNumber - 1])
+                        break
+
+                    case "numPlayers": // get numPlayers and send
+                        const numPlayers = getInput()
+                        setNumPlayers(numPlayers)
+                        break
+
+                    case "move":
+                        const myMove = getInput()
+                        move(myMove)
+                        break
+
+                }
+            } else if (event.key === "Enter" && awaitedInput == "start") {
+                awaitedInput = "gameId"
+                disableInput = false
+                printToOutput("Input Game ID :")
+            }
+        })
+
+        // handle keyboard input at all
+        inputField.addEventListener("input", function(event) {
+            if (disableInput) {
+                inputField.value = ""
+            }
+        })
+
+        function printToOutput(text, isUserInput = false) {
+            if (isUserInput) {
+                const commandOutput = document.createElement("div")
+                commandOutput.innerHTML = "> " + text
+                commandOutput.style.whiteSpace = "break-spaces"
+                outputDiv.appendChild(commandOutput)
+                const br = document.createElement("br")
+                outputDiv.appendChild(br)
+            } else {
+                const commandOutput = document.createElement("div")
+                commandOutput.innerHTML = text
+                commandOutput.style.whiteSpace = "break-spaces"
+                outputDiv.appendChild(commandOutput)
+            }
+        }
+
+        function getInput() {
+            disableInput = true
+            let value = inputField.value
+            inputField.value = ""
+            printToOutput(value, isUserInput = true)
+            return value
+        }
+    </script>
+</body>
+
+</html>
