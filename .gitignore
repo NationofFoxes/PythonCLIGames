@@ -1,0 +1,6 @@
+venv
+.idea
+.vs
+*\__pycache__
+test_database.db
+.vscode
